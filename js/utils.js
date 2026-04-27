@@ -14,7 +14,7 @@ export const debug = (msg, data = '') => {
 };
 
 // 2. User Feedback (Toast System)
-// Replaces browser alert() with smooth notifications[cite: 18, 136].
+// Replaces browser alert() with smooth notifications.
 export const toast = (msg, type = 'info') => {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -37,7 +37,7 @@ export const toast = (msg, type = 'info') => {
 export const confirmModal = (title, message) => {
   return new Promise((resolve) => {
     const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay'; // Defined in styles.css Section 8
+    overlay.className = 'modal-overlay'; // Defined in styles.css Section 7
 
     overlay.innerHTML = `
       <div class="modal-content">
@@ -66,7 +66,7 @@ export const confirmModal = (title, message) => {
 };
 
 // 4. Formatting Utilities
-// Formats numbers as Philippine Pesos (e.g., ₱1,325.00)[cite: 19, 119].
+// Formats numbers as Philippine Pesos (e.g., ₱1,325.00).
 export const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',
@@ -74,7 +74,7 @@ export const formatCurrency = (amount) => {
   }).format(amount);
 };
 
-// Returns date as "Nov 01, 2025"[cite: 125].
+// Returns date as "Nov 01, 2025".
 export const formatDate = (timestamp) => {
   if (!timestamp) return 'N/A';
   const date = new Date(timestamp);
@@ -85,7 +85,7 @@ export const formatDate = (timestamp) => {
   });
 };
 
-// Returns time as "2:30 PM"[cite: 130].
+// Returns time as "2:30 PM".
 export const formatTime = (timestamp) => {
   if (!timestamp) return '';
   const date = new Date(timestamp);
@@ -96,7 +96,7 @@ export const formatTime = (timestamp) => {
   });
 };
 
-// Converts database format "2025_11" to "November 2025"[cite: 131, 132].
+// Converts database format "2025_11" to "November 2025".
 export const formatMonth = (yyyy_mm) => {
   if (!yyyy_mm) return '';
   const [year, month] = yyyy_mm.split('_');
@@ -120,7 +120,7 @@ export const initTheme = () => {
 };
 
 // 6. Role-Based Access Control (Security)
-// Ensures users can't access unauthorized screens[cite: 20, 118].
+// Ensures users can't access unauthorized screens.
 export const getRole = () => sessionStorage.getItem('aqt_role');
 
 export const requireRole = (...allowedRoles) => {
