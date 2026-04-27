@@ -1,6 +1,6 @@
 /**
- * AquaTrack Premium Design System v3.1 - "Glow-Core"
- * Focus: High Contrast, Action Grouping, and Dark Mode Visibility
+ * AquaTrack Premium Design System v3.2 - "Perfect Geometry"
+ * Focus: High Contrast, Inset Depth, and Absolute Alignment
  */
 
 :root {
@@ -14,7 +14,7 @@
   --border: rgba(15, 23, 42, 0.06);
   
   --radius: 24px;
-  --radius-sm: 14px;
+  --radius-sm: 16px;
   --p-md: 1.5rem;
   
   --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.03), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
@@ -40,18 +40,35 @@ body {
   line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
   background-image: radial-gradient(circle at 100% 0%, var(--accent-glow), transparent 40%);
+  
+  /* Master, this is the centering engine you demanded */
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   transition: background 0.4s ease;
 }
 
-/* --- Header Actions Component (The Reconciliation) --- */
+/* --- Layout Structure --- */
+.container {
+  width: 100%;
+  max-width: 400px; /* Tightened for perfect mobile centering */
+  padding: var(--p-md);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
 header {
+  width: 100%;
   background: var(--glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   padding: 1rem var(--p-md);
-  position: sticky;
+  position: fixed; /* Fixed to top, body flex handles the rest */
   top: 0;
+  left: 0;
   z-index: 100;
   display: flex;
   justify-content: space-between;
@@ -62,55 +79,65 @@ header {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px; /* Perfect spacing between toggle and logout */
+  gap: 12px;
 }
 
-/* --- Navigation & Icons --- */
-.btn-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-premium);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent); /* Force icon color to brand accent */
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Expert Glow for visibility in dark mode */
-[data-theme="dark"] .btn-icon {
-  background: rgba(14, 165, 233, 0.1);
-  border-color: rgba(14, 165, 233, 0.3);
-  color: #38bdf8; /* Brighter cyan for dark mode pop */
-  box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
-}
-
-.btn-icon:hover { transform: rotate(12deg) scale(1.1); }
-
-/* --- Layout & Cards --- */
-.container {
+/* --- The Sublime Inputs --- */
+.form-group {
   width: 100%;
-  max-width: 440px; 
-  margin: 0 auto;
-  padding: var(--p-md);
+  margin-bottom: 1.5rem;
 }
 
+.form-group label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.6rem;
+  margin-left: 0.5rem;
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: rgba(var(--bg-app), 0.3);
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Inset shadow for carved depth */
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-glow), inset 0 2px 4px rgba(0, 0, 0, 0.02);
+  transform: translateY(-1px);
+}
+
+/* --- Components --- */
 .card {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 1.75rem;
+  padding: 2rem;
   margin-bottom: 1.5rem;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-premium);
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
-.welcome-card { padding: 1rem 0 2.5rem 0; }
-.welcome-card h2 { font-weight: 900; font-size: 2.25rem; letter-spacing: -0.04em; }
+.welcome-card { 
+  padding: 1rem 0;
+  text-align: center; 
+}
 
 .dash-row {
   display: grid;
@@ -125,16 +152,7 @@ header {
   border-radius: var(--radius);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-premium);
-  transition: transform 0.3s ease;
-}
-
-.dash-label {
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  display: block;
+  text-align: center;
 }
 
 .dash-value {
@@ -145,10 +163,11 @@ header {
   -webkit-text-fill-color: transparent;
 }
 
-/* --- High-End Buttons --- */
+/* --- Buttons --- */
 .btn {
-  padding: 1rem 1.5rem;
-  border-radius: 16px;
+  width: 100%;
+  padding: 1.1rem 1.5rem;
+  border-radius: var(--radius-sm);
   font-weight: 800;
   font-size: 0.95rem;
   cursor: pointer;
@@ -166,15 +185,25 @@ header {
   box-shadow: var(--shadow-lift);
 }
 
-.btn-primary:active { transform: scale(0.96); }
-
-.btn-secondary {
-  background: var(--glass);
-  color: var(--text-main);
+.btn-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface);
   border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+[data-theme="dark"] .btn-icon {
+  background: rgba(14, 165, 233, 0.1);
+  color: #38bdf8;
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
 }
 
 /* --- Utils --- */
+.text-center { text-align: center; }
 .text-muted { color: var(--text-muted); font-size: 0.95rem; }
-.mt-1 { margin-top: 1rem; }
