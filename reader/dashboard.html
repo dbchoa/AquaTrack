@@ -10,48 +10,45 @@
     <div id="toast-container"></div>
 
     <header>
-        <span style="font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-            AquaTrack <span style="color: var(--text-muted); font-weight: 400;">Reader</span>
+        <span style="font-weight: 900; letter-spacing: -0.04em; display: flex; align-items: center; gap: 10px; font-size: 1.1rem;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            AquaTrack <span style="color: var(--text-muted); font-weight: 500; font-size: 0.9rem; letter-spacing: 0;">Reader</span>
         </span>
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="display: flex; gap: 10px; align-items: center;">
             <button class="btn-icon" id="theme-toggle" aria-label="Toggle Theme">
-                <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    </svg>
+                <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
-            <button class="btn btn-secondary" id="logout-btn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;">Logout</button>
+            <button class="btn btn-secondary" id="logout-btn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 700; border-radius: 12px;">Logout</button>
         </div>
     </header>
 
     <div class="container">
         <div class="welcome-card">
-            <h2 id="welcome-msg">Mabuhay!</h2>
-            <p class="text-muted">Field Operations Overview</p>
+            <span style="text-transform: uppercase; font-size: 0.7rem; font-weight: 800; color: var(--accent); letter-spacing: 0.15em; display: block; margin-bottom: 4px;">Operational Hub</span>
+            <h2 id="welcome-msg" style="font-size: 2.25rem;">Mabuhay!</h2>
+            <p class="text-muted" style="margin-top: 4px;">You have <strong style="color: var(--text-main);">12 assignments</strong> remaining for today.</p>
         </div>
 
         <div class="dash-row">
             <div class="dash-item">
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    <span class="dash-label">To Read</span>
-                </div>
-                <div class="dash-value" id="count-pending">--</div>
+                <span class="dash-label">Pending</span>
+                <div class="dash-value" id="count-pending">12</div>
             </div>
             <div class="dash-item">
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    <span class="dash-label">Completed</span>
-                </div>
-                <div class="dash-value" id="count-done">--</div>
+                <span class="dash-label">Synced</span>
+                <div class="dash-value" id="count-done" style="background: linear-gradient(135deg, #10b981, #059669); -webkit-background-clip: text;">48</div>
             </div>
         </div>
 
         <div class="card">
-            <h3 style="font-size: 1.1rem; font-weight: 700;">Capture Reading</h3>
-            <p class="text-muted mt-1">Sync new meter data to the cloud.</p>
-            <button class="btn btn-primary mt-1" onclick="window.location.href='read-meter.html'">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Open Meter Scanner
+            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--accent-glow); filter: blur(40px); border-radius: 50%; pointer-events: none;"></div>
+            
+            <h3 style="font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em;">Capture Reading</h3>
+            <p class="text-muted mt-1" style="margin-bottom: 1.5rem; line-height: 1.6;">Begin capturing consumption data for the current billing cycle. Data will sync automatically.</p>
+            
+            <button class="btn btn-primary" onclick="window.location.href='read-meter.html'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Start Capture
             </button>
         </div>
     </div>
@@ -64,24 +61,24 @@
         import { logout } from '../js/auth.js';
         import { requireRole, setTheme, initTheme } from '../js/utils.js';
 
-        // Icon definitions
         const sunPath = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
         const moonPath = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
 
         const updateIcon = (theme) => {
-            document.getElementById('theme-icon').innerHTML = theme === 'dark' ? sunPath : moonPath;
+            const iconEl = document.getElementById('theme-icon');
+            if (iconEl) iconEl.innerHTML = theme === 'dark' ? sunPath : moonPath;
         };
 
-        // 1. Init
+        // 1. Initialization
         initTheme();
         requireRole('reader');
         updateIcon(document.documentElement.dataset.theme);
 
-        // 2. Name Display
+        // 2. Personalization
         const name = sessionStorage.getItem('aqt_user_name') || 'Reader';
-        document.getElementById('welcome-msg').textContent = `Mabuhay, ${name}!`;
+        document.getElementById('welcome-msg').textContent = `Mabuhay, ${name.split(' ')[0]}!`;
 
-        // 3. Toggle Logic
+        // 3. Theme Toggle Logic
         const themeBtn = document.getElementById('theme-toggle');
         themeBtn.onclick = () => {
             const current = document.documentElement.dataset.theme;
