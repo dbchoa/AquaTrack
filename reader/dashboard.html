@@ -11,7 +11,12 @@
 
     <header>
         <span><strong>AquaTrack</strong> Reader</span>
-        <button class="btn btn-secondary" id="logout-btn" style="width: auto; padding: 0.5rem 1rem;">Logout</button>
+        <div style="display: flex; gap: var(--space-sm);">
+            <button class="btn btn-secondary" id="theme-toggle" style="width: auto; padding: 0.5rem; font-size: 1.2rem;">
+                🌓
+            </button>
+            <button class="btn btn-secondary" id="logout-btn" style="width: auto; padding: 0.5rem 1rem;">Logout</button>
+        </div>
     </header>
 
     <div class="container">
@@ -46,16 +51,28 @@
 
     <script type="module">
         import { logout } from '../js/auth.js';
-        import { requireRole } from '../js/utils.js';
+        import { requireRole, setTheme } from '../js/utils.js';
 
-        // 1. Protection: If not a reader, kick them back to login
+        // 1. Initialize Theme from localStorage immediately
+        const savedTheme = localStorage.getItem('aqt_theme') || 'light';
+        document.documentElement.dataset.theme = savedTheme;
+
+        // 2. Protection: If not a reader, kick them back to login
         requireRole('reader');
 
-        // 2. Personalize UI
+        // 3. Personalize UI
         const name = sessionStorage.getItem('aqt_user_name');
         document.getElementById('welcome-msg').textContent = `Mabuhay, ${name}!`;
 
-        // 3. Setup Logout
+        // 4. Handle Theme Toggle
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.onclick = () => {
+            const currentTheme = document.documentElement.dataset.theme;
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        };
+
+        // 5. Setup Logout
         document.getElementById('logout-btn').onclick = logout;
     </script>
 </body>
