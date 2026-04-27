@@ -237,3 +237,38 @@ input:focus {
 .modal-actions .btn {
   flex: 1;
 }
+
+/* --- 9. Dashboard Rows --- */
+.dash-row {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+  overflow-x: auto; /* Allows swiping if items are too wide */
+  padding-bottom: var(--space-xs);
+}
+
+.dash-item {
+  flex: 1;
+  min-width: 120px; /* Ensures items don't get too squished */
+  background: var(--surface);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.dash-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: var(--space-xs);
+}
+
+.dash-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
