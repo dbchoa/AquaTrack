@@ -105,10 +105,18 @@ export const formatMonth = (yyyy_mm) => {
 };
 
 // 5. Theme Management
-// Sets the [data-theme] attribute and persists it in localStorage[cite: 19, 121].
 export const setTheme = (theme) => {
+  // Apply to the <html> tag so all CSS variables update
   document.documentElement.dataset.theme = theme;
+  // Save to browser memory
   localStorage.setItem('aqt_theme', theme);
+  debug(`Theme set to: ${theme}`);
+};
+
+// Automatically apply theme on page load
+export const initTheme = () => {
+  const savedTheme = localStorage.getItem('aqt_theme') || 'light';
+  setTheme(savedTheme);
 };
 
 // 6. Role-Based Access Control (Security)
