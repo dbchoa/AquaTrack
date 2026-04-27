@@ -1,6 +1,6 @@
 /**
- * AquaTrack Premium Design System v2.0
- * Focus: Optical Balance, Native Mobile Flow, Visual Hierarchy
+ * AquaTrack Premium Design System v2.1
+ * Focus: Unified Design DNA, Harmonic Spacing, Depth Refinement
  */
 
 :root {
@@ -13,11 +13,11 @@
   --text-muted: #64748b;
   --border: rgba(226, 232, 240, 0.8);
   
-  /* System Spacing (Golden Ratio based) */
+  /* System Spacing & DNA */
   --p-sm: 0.75rem;
   --p-md: 1.25rem;
   --p-lg: 2rem;
-  --radius: 18px;
+  --radius: 18px; /* The "DNA" of our curves */
   
   /* Depth Layers */
   --shadow-float: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
@@ -41,21 +41,22 @@ body {
   color: var(--text-main);
   line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.3s ease;
 }
 
 /* --- Layout Structure --- */
 .container {
   width: 100%;
-  max-width: 440px; /* Optical sweet spot for mobile focus */
+  max-width: 440px; 
   margin: 0 auto;
   padding: var(--p-md);
 }
 
 header {
-  background: rgba(var(--bg-app), 0.8);
+  background: var(--surface);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  padding: 1rem var(--p-md);
+  padding: 0.75rem var(--p-md); /* Reduced padding for sleeker look */
   position: sticky;
   top: 0;
   z-index: 100;
@@ -79,8 +80,7 @@ header {
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: var(--p-sm) 0;
-  margin-bottom: var(--p-md);
+  padding: var(--p-sm) 0 var(--p-md) 0;
 }
 
 .welcome-card h2 { font-weight: 800; font-size: 1.75rem; letter-spacing: -0.025em; }
@@ -89,15 +89,16 @@ header {
 .dash-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px; /* Increased gap for visual breath */
   margin-bottom: var(--p-md);
 }
 
 .dash-item {
   background: var(--surface);
-  padding: 1rem;
+  padding: 1.25rem;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  box-shadow: var(--shadow-float);
 }
 
 .dash-label {
@@ -105,20 +106,21 @@ header {
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 .dash-value {
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--accent);
+  margin-top: 4px;
 }
 
 /* --- Interactive Elements --- */
 .btn {
   width: 100%;
   padding: 0.875rem 1.5rem;
-  border-radius: 14px;
+  border-radius: var(--radius); /* Unified with Design DNA */
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
@@ -143,17 +145,27 @@ header {
   background: var(--bg-app);
   color: var(--text-main);
   border: 1px solid var(--border);
+  font-weight: 600;
 }
 
+/* Unified Icon Button Fix */
 .btn-icon {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   padding: 0;
-  border-radius: 10px;
-  background: var(--surface);
+  border-radius: 50%; /* Circles always feel more "premium" for toggles */
+  background: var(--bg-app);
+  color: var(--text-main);
   border: 1px solid var(--border);
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
+
+.btn-icon:hover { background: var(--border); transform: rotate(15deg); }
+.btn-icon:active { transform: scale(0.92); }
 
 /* --- Form Fields --- */
 .form-group { margin-bottom: 1.25rem; }
@@ -169,12 +181,12 @@ header {
 input {
   width: 100%;
   padding: 0.875rem 1rem;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-main);
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
 }
 
 input:focus { outline: none; border-color: var(--accent); background: var(--bg-app); }
