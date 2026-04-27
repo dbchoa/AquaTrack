@@ -9,33 +9,44 @@
 <body>
     <div id="toast-container"></div>
 
-    <div class="container" style="display: flex; flex-direction: column; justify-content: center; min-height: 100vh;">
-        <div class="text-center">
-            <h1 style="color: var(--accent-primary); margin-bottom: var(--space-lg);">AquaTrack</h1>
+    <div class="container" style="display: flex; flex-direction: column; justify-content: center; min-height: 100vh; padding-bottom: 4rem;">
+        <div class="text-center" style="margin-bottom: 2.5rem;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: var(--surface); border-radius: 20px; box-shadow: var(--shadow-premium); margin-bottom: 1rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                </svg>
+            </div>
+            <h1 style="font-weight: 900; font-size: 2.5rem; letter-spacing: -0.05em; color: var(--text-main);">
+                Aqua<span style="color: var(--accent); font-weight: 500;">Track</span>
+            </h1>
+            <p class="text-muted" style="font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.75rem; margin-top: 4px;">Subdivision Water Management</p>
         </div>
 
-        <div class="card">
-            <h2 class="text-center" style="margin-bottom: var(--space-md);">Sign In</h2>
+        <div class="card" style="border: 1px solid var(--border); backdrop-filter: blur(10px); background: var(--glass);">
+            <div style="position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: var(--accent-glow); filter: blur(40px); border-radius: 50%; pointer-events: none;"></div>
+            
+            <h2 style="font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -0.02em;">Sign In</h2>
             
             <form id="login-form">
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" placeholder="name@example.com" required>
+                    <input type="email" id="email" placeholder="name@example.com" required autocomplete="email">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
+                    <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
                 </div>
 
-                <button type="submit" class="btn btn-primary" id="login-btn">
-                    Login to Dashboard
+                <button type="submit" class="btn btn-primary" id="login-btn" style="margin-top: 1rem;">
+                    <span>Login to Dashboard</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
             </form>
         </div>
 
-        <p class="text-center" style="font-size: 0.875rem; color: var(--text-secondary);">
-            Digitizing Water Management
+        <p class="text-center text-muted" style="font-size: 0.85rem; font-weight: 500;">
+            Digitizing subdivision resource management.
         </p>
     </div>
 
@@ -45,26 +56,29 @@
 
     <script type="module">
         import { login } from './js/auth.js';
-        import { toast } from './js/utils.js';
+        import { initTheme } from './js/utils.js';
+
+        // Initialize our beautiful theme
+        initTheme();
 
         const loginForm = document.getElementById('login-form');
         const loginBtn = document.getElementById('login-btn');
 
         loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Prevents page reload
+            e.preventDefault();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            // Visual feedback: disable button while waiting
+            // Visual feedback
             loginBtn.disabled = true;
-            loginBtn.textContent = 'Authenticating...';
+            loginBtn.innerHTML = '<span>Authenticating...</span>';
 
             await login(email, password);
 
-            // Re-enable if login failed (if successful, the page will redirect)
+            // Re-enable if failed
             loginBtn.disabled = false;
-            loginBtn.textContent = 'Login to Dashboard';
+            loginBtn.innerHTML = '<span>Login to Dashboard</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
         });
     </script>
 </body>
