@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AquaTrack Reader</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <header>
+        <span><strong>AquaTrack</strong> Reader</span>
+        <button class="btn btn-secondary" id="logout-btn" style="width: auto; padding: 0.5rem 1rem;">Logout</button>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2 id="welcome-msg">Loading...</h2>
+            <p class="text-secondary">Field Operations</p>
+        </div>
+
+        <div class="dash-row">
+            <div class="dash-item">
+                <span class="dash-label">To Read</span>
+                <div class="dash-value">--</div>
+            </div>
+            <div class="dash-item">
+                <span class="dash-label">Completed</span>
+                <div class="dash-value">--</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Capture Reading</h3>
+            <p class="text-secondary mt-1">Select an assigned zone or search for an account to begin.</p>
+            <button class="btn btn-primary mt-1" onclick="window.location.href='read-meter.html'">
+                Go to Meter Scanner
+            </button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <script type="module">
+        import { logout } from '../js/auth.js';
+        import { requireRole } from '../js/utils.js';
+
+        // 1. Protection: If not a reader, kick them back to login
+        requireRole('reader');
+
+        // 2. Personalize UI
+        const name = sessionStorage.getItem('aqt_user_name');
+        document.getElementById('welcome-msg').textContent = `Mabuhay, ${name}!`;
+
+        // 3. Setup Logout
+        document.getElementById('logout-btn').onclick = logout;
+    </script>
+</body>
+</html>
