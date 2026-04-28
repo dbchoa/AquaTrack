@@ -6,7 +6,7 @@
     <title>AquaTrack - Secure Access</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="glass-blur flex items-center justify-center">
+<body class="glass-blur">
     <div id="toast-container" class="fixed pt-12 pr-4 z-max" style="top:0; right:0;"></div>
     
     <div class="glass-orb orb-1"></div>
@@ -33,14 +33,14 @@
             <form id="login-form" class="flex flex-col gap-2">
                 <div class="form-group mb-4">
                     <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-2 block">Personnel ID</label>
-                    <div class="glass-well">
+                    <div class="glass-well rounded-22">
                         <input type="email" id="email" placeholder="name@aquatrack.sys" required autocomplete="email" class="font-medium">
                     </div>
                 </div>
 
                 <div class="form-group mb-4">
                     <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-2 block">Access Key</label>
-                    <div class="glass-well">
+                    <div class="glass-well rounded-22">
                         <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" class="font-medium">
                     </div>
                 </div>
@@ -62,8 +62,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-
     <script type="module">
         import { login } from './js/auth.js';
         import { initTheme } from './js/utils.js';
@@ -75,13 +73,12 @@
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             loginBtn.disabled = true;
-            const originalContent = loginBtn.innerHTML;
             loginBtn.innerHTML = '<span class="uppercase tracking-widest text-xs font-black">Verifying...</span>';
             try {
                 await login(document.getElementById('email').value, document.getElementById('password').value);
             } catch (err) {
                 loginBtn.disabled = false;
-                loginBtn.innerHTML = originalContent;
+                loginBtn.innerHTML = '<span class="uppercase tracking-widest text-xs font-black">Initialize Session</span>';
             }
         });
     </script>
