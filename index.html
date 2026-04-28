@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" id="aqt-html">
+<html lang="en" id="main-html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,7 +25,6 @@
         .btn-droplet:active { transform: scale(0.98); }
         input:focus, button:focus { outline: none !important; }
 
-        /* Dark mode overrides following the reference pattern */
         .dark body { background-color: #0f172a; color: #f8fafc; }
         .dark .glass-card { background: rgba(30, 41, 59, 0.7); border-color: rgba(255, 255, 255, 0.05); }
     </style>
@@ -54,13 +53,13 @@
                 <div>
                     <label class="text-[10px] uppercase tracking-widest font-bold text-water mb-2 block text-center">Personnel ID</label>
                     <input type="email" id="email" placeholder="name@aquatrack.sys" required 
-                        class="w-full p-4 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:border-water focus:ring-4 focus:ring-water/10 transition-all font-normal text-center dark:text-white">
+                        class="w-full p-4 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:border-water focus:ring-4 focus:ring-water/10 transition-all font-normal text-center dark:text-white outline-none">
                 </div>
 
                 <div>
                     <label class="text-[10px] uppercase tracking-widest font-bold text-water mb-2 block text-center">Access Key</label>
                     <input type="password" id="password" placeholder="••••••••" required 
-                        class="w-full p-4 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:border-water focus:ring-4 focus:ring-water/10 transition-all font-normal text-center dark:text-white">
+                        class="w-full p-4 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:border-water focus:ring-4 focus:ring-water/10 transition-all font-normal text-center dark:text-white outline-none">
                 </div>
 
                 <button type="submit" id="login-btn" 
@@ -71,8 +70,8 @@
         </div>
 
         <div class="mt-8 flex bg-slate-200 dark:bg-slate-800 p-1 rounded-full w-40 relative">
-            <button onclick="window.updateTheme('light')" type="button" class="flex-1 text-[10px] font-bold uppercase tracking-widest py-2 rounded-full z-10 transition-colors text-slate-500 dark:text-slate-400">Light</button>
-            <button onclick="window.updateTheme('dark')" type="button" class="flex-1 text-[10px] font-bold uppercase tracking-widest py-2 rounded-full z-10 transition-colors text-slate-900 dark:text-white">Dark</button>
+            <button onclick="toggleDarkMode('light')" type="button" class="flex-1 text-[10px] font-bold uppercase tracking-widest py-2 rounded-full z-10 transition-colors text-slate-500 dark:text-slate-400">Light</button>
+            <button onclick="toggleDarkMode('dark')" type="button" class="flex-1 text-[10px] font-bold uppercase tracking-widest py-2 rounded-full z-10 transition-colors text-slate-900 dark:text-white">Dark</button>
             <div id="toggle-indicator" class="absolute top-1 bottom-1 left-1 w-[76px] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 transform"></div>
         </div>
 
@@ -88,31 +87,34 @@
         import { login } from './js/auth.js';
         import { setTheme, initTheme } from './js/utils.js';
         
-        // Ensure the mapping is identical to your working reference
-        window.updateTheme = (theme) => {
-            setTheme(theme);
+        // Reference project pattern for global mapping
+        window.toggleDarkMode = (mode) => {
+            const html = document.getElementById('main-html');
             const indicator = document.getElementById('toggle-indicator');
-            if (indicator) {
-                indicator.style.transform = theme === 'dark' ? 'translateX(81px)' : 'translateX(0px)';
-            }
-            // Explicitly toggle the .dark class on the <html> tag for Tailwind
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
+            
+            // 1. Logic Update
+            setTheme(mode);
+            
+            // 2. Visual UI Update
+            if (mode === 'dark') {
+                html.classList.add('dark');
+                if (indicator) indicator.style.transform = 'translateX(81px)';
             } else {
-                document.documentElement.classList.remove('dark');
+                html.classList.remove('dark');
+                if (indicator) indicator.style.transform = 'translateX(0px)';
             }
         };
 
-        // Initialize theme state immediately
+        // Initialize state
         initTheme();
         const saved = localStorage.getItem('aqt_theme') || 'dark';
-        window.updateTheme(saved);
+        window.toggleDarkMode(saved);
 
         const loginForm = document.getElementById('login-form');
-        const loginBtn = document.getElementById('login-btn');
         if (loginForm) {
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const loginBtn = document.getElementById('login-btn');
                 loginBtn.disabled = true;
                 const originalText = loginBtn.innerText;
                 loginBtn.innerText = 'VERIFYING...';
