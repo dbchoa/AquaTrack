@@ -23,16 +23,13 @@
         }
     </script>
     <style>
-        /* Custom Droplet Effect that Tailwind can't quite do solo */
         .btn-droplet {
             background: radial-gradient(circle at 30% 30%, #7dd3fc, #4facfe);
             transition: all 0.2s ease;
         }
         .btn-droplet:active { transform: scale(0.98); }
-        /* Remove default focus ring for a custom rounded one */
         input:focus, button:focus { outline: none !important; }
 
-        /* Dark mode specific backgrounds for vanilla body */
         [data-theme="dark"] body {
             background-color: #0f172a;
             color: #f8fafc;
@@ -84,9 +81,9 @@
         </div>
 
         <div class="mt-8 flex bg-slate-200 dark:bg-slate-800 p-1 rounded-full w-40 relative">
-            <button onclick="updateTheme('light')" id="btn-light" class="flex-1 text-[10px] font-bold uppercase tracking-widest py-2 rounded-full z-10 transition-colors text-slate-500 dark:text-slate-400">Light</button>
-            <button onclick="updateTheme('dark')" id="btn-dark" class="flex-1 text-[10px] font-bold uppercase tracking-widest py-2 rounded-full z-10 transition-colors text-slate-900 dark:text-white">Dark</button>
-            <div id="toggle-indicator" class="absolute top-1 bottom-1 left-1 w-[76px] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 transform translate-x-[81px]"></div>
+            <button id="btn-light" class="flex-1 text-[10px] font-bold uppercase tracking-widest py-2 rounded-full z-10 transition-colors text-slate-500 dark:text-slate-400">Light</button>
+            <button id="btn-dark" class="flex-1 text-[10px] font-bold uppercase tracking-widest py-2 rounded-full z-10 transition-colors text-slate-900 dark:text-white">Dark</button>
+            <div id="toggle-indicator" class="absolute top-1 bottom-1 left-1 w-[76px] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 transform"></div>
         </div>
 
         <p class="mt-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-50">
@@ -101,13 +98,11 @@
         import { login } from './js/auth.js';
         import { setTheme, initTheme } from './js/utils.js';
         
-        // Expose to window for the onclick handlers
-        window.updateTheme = (theme) => {
-            setTheme(theme);
-            const indicator = document.getElementById('toggle-indicator');
-            const btnLight = document.getElementById('btn-light');
-            const btnDark = document.getElementById('btn-dark');
+        const indicator = document.getElementById('toggle-indicator');
+        const btnLight = document.getElementById('btn-light');
+        const btnDark = document.getElementById('btn-dark');
 
+        const updateUI = (theme) => {
             if (theme === 'dark') {
                 indicator.style.transform = 'translateX(81px)';
                 btnDark.classList.add('text-slate-900', 'dark:text-white');
@@ -119,12 +114,23 @@
             }
         };
 
-        // Standard initialization
-        initTheme();
-        // Set initial toggle position based on current theme
-        const currentTheme = document.documentElement.dataset.theme || 'dark';
-        window.updateTheme(currentTheme);
+        // Event Listeners (Proper Module Way)
+        btnLight.addEventListener('click', () => {
+            setTheme('light');
+            updateUI('light');
+        });
 
+        btnDark.addEventListener('click', () => {
+            setTheme('dark');
+            updateUI('dark');
+        });
+
+        // Initialization
+        initTheme();
+        const currentTheme = document.documentElement.dataset.theme || 'dark';
+        updateUI(currentTheme);
+
+        // Login Logic
         const loginForm = document.getElementById('login-form');
         const loginBtn = document.getElementById('login-btn');
 
