@@ -102,7 +102,7 @@
         const btnLight = document.getElementById('btn-light');
         const btnDark = document.getElementById('btn-dark');
 
-        const updateUI = (theme) => {
+        const updateToggleUI = (theme) => {
             if (theme === 'dark') {
                 indicator.style.transform = 'translateX(81px)';
                 btnDark.classList.add('text-slate-900', 'dark:text-white');
@@ -114,23 +114,23 @@
             }
         };
 
-        // Event Listeners (Proper Module Way)
+        // Event Listeners (Module Style)
         btnLight.addEventListener('click', () => {
             setTheme('light');
-            updateUI('light');
+            updateToggleUI('light');
         });
 
         btnDark.addEventListener('click', () => {
             setTheme('dark');
-            updateUI('dark');
+            updateToggleUI('dark');
         });
 
-        // Initialization
+        // Initialize Theme Logic
         initTheme();
         const currentTheme = document.documentElement.dataset.theme || 'dark';
-        updateUI(currentTheme);
+        updateToggleUI(currentTheme);
 
-        // Login Logic
+        // Login Submission
         const loginForm = document.getElementById('login-form');
         const loginBtn = document.getElementById('login-btn');
 
