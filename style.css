@@ -1,32 +1,33 @@
 /**
- * AquaTrack Premium Design System v3.4 - "Expansive Glass"
- * Focus: Breathable Layout, Balanced Dash-Row, and Frosted Actions
+ * AquaTrack Premium Design System v3.5 - "Liquid Glass"
+ * Focus: High-Density Breathability, Dynamic Depth Orbs, and Precision Math
  */
 
 :root {
   --bg-app: #f0f4f8;
   --surface: #ffffff;
-  --glass: rgba(255, 255, 255, 0.7);
+  --glass: rgba(255, 255, 255, 0.65);
   --accent: #0ea5e9;
-  --accent-glow: rgba(14, 165, 233, 0.15);
+  --accent-glow: rgba(14, 165, 233, 0.18);
   --text-main: #0f172a;
   --text-muted: #64748b;
-  --border: rgba(15, 23, 42, 0.08);
+  --border: rgba(15, 23, 42, 0.06);
   
-  --radius: 28px; /* Even softer, more premium curves */
+  --radius: 32px; /* Even softer, flagship-level curves */
   --radius-sm: 18px;
   --p-md: 1.5rem;
   
   --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.03), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-  --shadow-lift: 0 15px 30px -10px rgba(14, 165, 233, 0.4);
+  --shadow-lift: 0 15px 35px -10px rgba(14, 165, 233, 0.45);
+  --shadow-pressed: 0 5px 10px -2px rgba(14, 165, 233, 0.3);
   
-  --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-kinetic: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 [data-theme="dark"] {
   --bg-app: #020617;
   --surface: #0f172a;
-  --glass: rgba(15, 23, 42, 0.75);
+  --glass: rgba(15, 23, 42, 0.7);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border: rgba(255, 255, 255, 0.1);
@@ -41,23 +42,36 @@ body {
   color: var(--text-main);
   line-height: 1.6;
   min-height: 100vh;
-  /* Centering engine for login, but expansive for dashboard */
+  /* Expert Alignment Engine: Center for short pages, Top for long */
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Start from top for dashboard flow */
-  background-image: radial-gradient(circle at 100% 0%, var(--accent-glow), transparent 50%);
+  justify-content: center; 
+  overflow-x: hidden;
   transition: background 0.4s ease;
 }
 
-/* --- Expansive Container --- */
+/* Dynamic Orbs from your inspirations... */
+.glass-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.orb-1 { width: 300px; height: 300px; background: var(--accent-glow); top: -100px; right: -50px; }
+.orb-2 { width: 250px; height: 250px; background: rgba(45, 212, 191, 0.1); bottom: -50px; left: -50px; }
+
+/* --- Container Precision --- */
 .container {
   width: 100%;
-  max-width: 480px; /* Widened for better dash-row breathability */
-  padding: 80px var(--p-md) var(--p-md) var(--p-md); /* Added top padding for fixed header */
+  max-width: 440px;
+  padding: 110px 1.5rem 40px 1.5rem; /* Precise top clearance for header */
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Consistent vertical breathing space */
+  gap: 2rem; /* The "Breathability" */
 }
 
 header {
@@ -65,10 +79,9 @@ header {
   background: var(--glass);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  padding: 1rem var(--p-md);
+  padding: 1.25rem 1.5rem;
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   z-index: 1000;
   display: flex;
   justify-content: space-between;
@@ -76,31 +89,24 @@ header {
   border-bottom: 1px solid var(--border);
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.header-actions { display: flex; align-items: center; gap: 12px; }
 
-/* --- The Balanced Dash-Row --- */
+/* --- Dashboard Realignment --- */
 .dash-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
   width: 100%;
 }
 
 .dash-item {
   background: var(--surface);
-  padding: 1.75rem 1.25rem;
-  border-radius: var(--radius);
+  padding: 1.75rem 1rem;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-premium);
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  transition: transform 0.25s var(--ease-elastic);
+  transition: all 0.2s var(--ease-kinetic);
 }
 
 .dash-item:active { transform: scale(0.96); }
@@ -110,8 +116,9 @@ header {
   font-weight: 800;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   margin-bottom: 0.5rem;
+  display: block;
 }
 
 .dash-value {
@@ -123,11 +130,11 @@ header {
   -webkit-text-fill-color: transparent;
 }
 
-/* --- Premium Cards --- */
+/* --- Flagship Components --- */
 .card {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 2.25rem 2rem;
+  padding: 2.5rem 2rem;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-premium);
   position: relative;
@@ -135,19 +142,12 @@ header {
   width: 100%;
 }
 
-.welcome-card {
-  padding: 0.5rem 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  text-align: left; /* Shifted to left for modern offset look */
-}
+.welcome-card { padding: 0; text-align: left; background: transparent; border: none; box-shadow: none; }
 
-/* --- Buttons --- */
 .btn {
   width: 100%;
-  padding: 1.1rem 1.5rem;
-  border-radius: var(--radius-sm);
+  padding: 1.15rem 1.5rem;
+  border-radius: 18px;
   font-weight: 800;
   font-size: 1rem;
   cursor: pointer;
@@ -156,7 +156,7 @@ header {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  transition: all 0.25s var(--ease-elastic);
+  transition: all 0.25s var(--ease-kinetic);
 }
 
 .btn:active { transform: scale(0.97) translateY(2px); }
@@ -167,30 +167,27 @@ header {
   box-shadow: var(--shadow-lift);
 }
 
-/* Seductive Glass Logout Button */
+.btn-primary:active { box-shadow: var(--shadow-pressed); }
+
 .btn-secondary {
   background: var(--glass);
   color: var(--text-main);
   border: 1px solid var(--border);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: var(--shadow-premium);
 }
 
 .btn-icon {
-  width: 46px;
-  height: 46px;
+  width: 46px; height: 46px;
   border-radius: 50%;
   background: var(--surface);
   border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   color: var(--accent);
   box-shadow: var(--shadow-premium);
 }
 
-/* --- Sublime Inputs --- */
+/* --- Sublime Inputs: Carved Depth --- */
 .form-group label {
   font-size: 0.8rem;
   font-weight: 800;
@@ -204,15 +201,16 @@ header {
 
 input {
   width: 100%;
-  padding: 1.2rem 1.25rem;
-  border-radius: var(--radius-sm);
+  padding: 1.25rem 1.5rem;
+  border-radius: 18px;
   border: 1px solid var(--border);
-  background: rgba(var(--bg-app), 0.3);
+  background: rgba(255, 255, 255, 0.4);
   color: var(--text-main);
-  font-size: 1.05rem;
-  transition: all 0.3s var(--ease-elastic);
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.04);
-  backdrop-filter: blur(5px);
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s var(--ease-kinetic);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(8px);
 }
 
 input:focus {
@@ -220,4 +218,5 @@ input:focus {
   background: var(--surface);
   border-color: var(--accent);
   box-shadow: 0 0 0 4px var(--accent-glow), inset 0 2px 4px rgba(0,0,0,0.02);
+  transform: translateY(-2px);
 }
