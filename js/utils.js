@@ -15,10 +15,9 @@ export const toast = (msg, type = 'info') => {
     if (!container) return;
 
     const toastElement = document.createElement('div');
-    // Integrated with Tailwind classes for the new design
     toastElement.className = 'glass-card bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-4 mb-4 rounded-2xl shadow-xl flex items-center border-l-4 z-50 transition-all duration-400 transform translate-x-0';
     
-    let accentColor = '#4facfe'; // Default water blue
+    let accentColor = '#4facfe'; 
     if (type === 'success') accentColor = '#10b981';
     if (type === 'error') accentColor = '#ef4444';
     if (type === 'warning') accentColor = '#f59e0b';
@@ -97,7 +96,6 @@ export const formatMonth = (yyyy_mm) => {
 // 6. Theme Management (Tailwind + Vanilla Hybrid)
 export const setTheme = (theme) => { 
     document.documentElement.dataset.theme = theme;
-    // Essential for Tailwind dark: utilities
     if (theme === 'dark') {
         document.documentElement.classList.add('dark');
     } else {
@@ -112,6 +110,19 @@ export const initTheme = () => {
     setTheme(savedTheme); 
 };
 
+/**
+ * GLOBAL BRIDGE: Exposes theme switching to HTML onclick events.
+ * DNA: Direct mapping to window object to bypass module scoping.
+ */
+window.toggleDarkMode = (mode) => {
+    setTheme(mode);
+    // Login-specific indicator handling
+    const indicator = document.getElementById('toggle-indicator');
+    if (indicator) {
+        indicator.style.transform = mode === 'dark' ? 'translateX(81px)' : 'translateX(0px)';
+    }
+};
+
 // 7. Role-Based Access Control
 export const getRole = () => sessionStorage.getItem('aqt_role');
 
@@ -121,3 +132,6 @@ export const requireRole = (...allowedRoles) => {
         window.location.href = '../index.html'; 
     } 
 };
+
+// Initialize immediately on load
+initTheme();
