@@ -1,6 +1,6 @@
 /**
- * AquaTrack Shared Utilities v4.9
- * DNA: High-Fidelity Feedback, Persistent Theming, and Precision Snap Sync.
+ * AquaTrack Shared Utilities v5.0
+ * DNA: High-Fidelity Feedback, Persistent Theming, and Responsive Slider Logic.
  */
 
 // 1. Debugging Utility
@@ -82,7 +82,7 @@ export const formatMonth = (yyyy_mm) => {
     return new Date(year, parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); 
 };
 
-// 6. Theme Management (The Final Solution)
+// 6. Theme Management (Sovereign Responsive Logic)
 export const setTheme = (theme, isInitial = false) => { 
     document.documentElement.dataset.theme = theme;
     
@@ -96,19 +96,20 @@ export const setTheme = (theme, isInitial = false) => {
     
     const indicator = document.getElementById('toggle-indicator');
     if (indicator) {
-        const travelDistance = theme === 'dark' ? '79px' : '0px';
+        // RESPONSIVE CALIBRATION: Use 100% of available button width instead of fixed pixels
+        // This ensures the padding on the right matches the padding on the left exactly.
+        const travelDistance = theme === 'dark' ? '100%' : '0%';
 
         if (isInitial) {
-            // THE KINETIC SNAP: Force a double-frame wait to ensure browser paint
             indicator.style.transition = 'none';
+            // We use 'left' for the snap because transform:translateX(100%) can sometimes 
+            // trigger sub-pixel aliasing on load.
+            indicator.style.transform = `translateX(${travelDistance})`;
+            indicator.offsetHeight; // Force reflow
+            
+            // Wait for paint before restoring smooth transition
             requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    indicator.style.transform = `translateX(${travelDistance})`;
-                    // Force a reflow
-                    indicator.offsetHeight; 
-                    // Re-enable smooth transition for future clicks
-                    indicator.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-                });
+                indicator.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
             });
         } else {
             indicator.style.transform = `translateX(${travelDistance})`;
@@ -118,11 +119,9 @@ export const setTheme = (theme, isInitial = false) => {
 
 export const initTheme = () => { 
     const savedTheme = localStorage.getItem('aqt_theme') || 'dark'; 
-    // Synchronous data-attribute set to prevent flash
-    document.documentElement.dataset.theme = savedTheme;
+    // Immediate class application to prevent white flash
     if (savedTheme === 'dark') document.documentElement.classList.add('dark');
 
-    // Asynchronous element snap
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => setTheme(savedTheme, true));
     } else {
@@ -131,8 +130,6 @@ export const initTheme = () => {
 };
 
 window.toggleDarkMode = (mode) => {
-    const indicator = document.getElementById('toggle-indicator');
-    if (indicator) indicator.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
     setTheme(mode, false);
 };
 
@@ -145,5 +142,5 @@ export const requireRole = (...allowedRoles) => {
     } 
 };
 
-// Launch
+// Initialize
 initTheme();
