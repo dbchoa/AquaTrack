@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AquaTrack - Authorized Personnel Gateway</title>
+    <title>AquaTrack - Secure Portal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="glass-blur">
@@ -14,38 +14,41 @@
 
     <div class="container flex flex-col justify-center h-screen">
         <div class="text-center mb-12">
-            <div class="flex items-center justify-center mx-auto mb-6 haptic" style="width: 92px; height: 92px; background: var(--surface); border-radius: 28px; box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1); border: 1px solid var(--border);">
+            <div class="flex items-center justify-center mx-auto mb-6 haptic" style="width: 96px; height: 96px; background: var(--surface); border-radius: 32px; box-shadow: 0 20px 40px -12px var(--accent-glow); border: 1px solid var(--border);">
                 <svg class="icon text-accent icon-bold icon-lg icon-glow" viewBox="0 0 24 24">
                     <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
                 </svg>
             </div>
-            <h1 class="text-3xl font-black tracking-tight text-main m-0" style="line-height: 0.8;">
+            <h1 class="text-3xl font-black tracking-tight text-main m-0" style="line-height: 0.8; font-size: 3.5rem;">
                 Aqua<span class="text-accent font-normal">Track</span>
             </h1>
-            <p class="text-muted font-black uppercase tracking-widest text-xs mt-4" style="opacity: 0.8;">
-                Subdivision Infrastructure
+            <p class="text-muted font-black uppercase tracking-widest text-xs mt-6" style="opacity: 0.9; letter-spacing: 0.4em;">
+                Infrastructure Command
             </p>
         </div>
 
-        <div class="glass-card glass-blur mb-8">
-            <h2 class="text-center font-black text-lg mb-8 tracking-tight text-main">Sign In</h2>
+        <div class="glass-card glass-blur p-8 mb-8">
+            <div class="text-center mb-10">
+                <h2 class="font-black text-xl tracking-tight text-main m-0">Authorized Access</h2>
+                <div class="mx-auto mt-2 w-8 h-1 rounded-full" style="background: var(--accent); opacity: 0.3;"></div>
+            </div>
             
-            <form id="login-form" class="flex flex-col gap-6">
+            <form id="login-form" class="flex flex-col gap-8">
                 <div class="form-group">
-                    <label class="text-accent text-xs font-black uppercase tracking-widest ml-2">Personnel ID</label>
+                    <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-1">Personnel ID</label>
                     <div class="glass-well">
-                        <input type="email" id="email" placeholder="name@aquatrack.sys" required autocomplete="email">
+                        <input type="email" id="email" placeholder="name@aquatrack.sys" required autocomplete="email" class="font-medium">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="text-accent text-xs font-black uppercase tracking-widest ml-2">Access Key</label>
+                    <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-1">Access Key</label>
                     <div class="glass-well">
-                        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+                        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" class="font-medium">
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary mt-4 w-full haptic" id="login-btn">
+                <button type="submit" class="btn btn-primary mt-4 w-full haptic" id="login-btn" style="height: 64px;">
                     <span class="uppercase tracking-widest text-xs font-black">Initiate Session</span>
                     <svg class="icon ml-2" width="20" height="20" viewBox="0 0 24 24" style="stroke-width: 4;">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -55,9 +58,16 @@
             </form>
         </div>
 
-        <p class="text-center text-muted font-bold text-xs uppercase tracking-widest" style="opacity: 0.4;">
-            &copy; 2026 AQUATRACK SYSTEMS V4.3
-        </p>
+        <div class="text-center">
+            <p class="text-muted font-black text-xs uppercase tracking-widest" style="opacity: 0.4;">
+                &copy; 2026 AQUATRACK SYSTEMS V4.4
+            </p>
+            <div class="flex justify-center gap-4 mt-4">
+                <div class="w-1 h-1 rounded-full bg-accent" style="opacity: 0.2;"></div>
+                <div class="w-1 h-1 rounded-full bg-accent" style="opacity: 0.2;"></div>
+                <div class="w-1 h-1 rounded-full bg-accent" style="opacity: 0.2;"></div>
+            </div>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
@@ -68,7 +78,6 @@
         import { login } from './js/auth.js';
         import { initTheme } from './js/utils.js';
         
-        // Immediate Theme Application
         initTheme();
 
         const loginForm = document.getElementById('login-form');
@@ -77,7 +86,6 @@
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Visual Interaction Feedback
             loginBtn.disabled = true;
             const originalContent = loginBtn.innerHTML;
             loginBtn.innerHTML = '<span class="uppercase tracking-widest text-xs font-black">Verifying...</span>';
@@ -87,7 +95,6 @@
                 const password = document.getElementById('password').value;
                 await login(email, password);
             } catch (err) {
-                // Revert state on rejection
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = originalContent;
             }
