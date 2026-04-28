@@ -1,134 +1,144 @@
 /**
- * AquaTrack Global Design System v4.7 - Master Precision
- * Focus: Micro-spacing, Absolute Alignment, and Advanced SVG Haptics.
+ * AquaTrack Global Design System v5.0 - "Kinetic Soul"
+ * DNA: High-Radius Curvature (3rem), Physical Haptics, and Glass-Well Depth.
+ * Integrated Reference: Soulwinning Tracker Precision.
  */
 
 :root {
-    /* --- Core Tokens --- */
-    --bg-app: #f0f4f8;
-    --surface: rgba(255, 255, 255, 0.9);
-    --glass: rgba(255, 255, 255, 0.4);
-    --glass-heavy: rgba(255, 255, 255, 0.75);
+    /* --- Core Palette --- */
+    --bg-app: #f8fafc; /* Lighter, cleaner slate from your reference */
+    --surface: rgba(255, 255, 255, 0.95);
+    --glass: rgba(248, 250, 252, 0.6); /* Glass matched to bg-slate-50 */
     --accent: #0ea5e9;
-    --accent-glow: rgba(14, 165, 233, 0.25);
+    --accent-glow: rgba(14, 165, 233, 0.15);
     --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border: rgba(15, 23, 42, 0.08);
+    --text-muted: #94a3b8;
+    --border: rgba(15, 23, 42, 0.06);
 
-    /* --- Geometry --- */
-    --radius-3xl: 40px;
-    --radius-2xl: 32px;
-    --radius-xl: 24px;
-    --radius-lg: 18px;
-    --radius-md: 12px;
+    /* --- Geometric Soul: Matched to your 3rem preference --- */
+    --radius-card: 48px; 
+    --radius-well: 24px;
+    --radius-btn: 24px;
 
-    /* --- Interaction --- */
+    /* --- Interaction & Motion --- */
     --ease-kinetic: cubic-bezier(0.34, 1.56, 0.64, 1);
-    --press-depth: scale(0.95) translateY(3px);
-    
-    /* --- Z-Stack --- */
-    --z-neg: -1; --z-fixed: 100; --z-max: 1000;
+    --press-depth: scale(0.95); /* Matched to your reference */
 }
 
 [data-theme="dark"] {
-    --bg-app: #020617;
-    --surface: rgba(15, 23, 42, 0.9);
-    --glass: rgba(30, 41, 59, 0.45);
-    --glass-heavy: rgba(15, 23, 42, 0.8);
+    --bg-app: #0f172a;
+    --surface: #1e293b;
+    --glass: rgba(30, 41, 59, 0.5);
     --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --border: rgba(255, 255, 255, 0.1);
-    --accent-glow: rgba(56, 189, 248, 0.25);
+    --text-muted: #64748b;
+    --border: rgba(255, 255, 255, 0.05);
 }
 
-/* --- Base --- */
+/* --- Base Reset --- */
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
 body {
     font-family: 'Inter', -apple-system, sans-serif;
     background-color: var(--bg-app);
     color: var(--text-main);
-    line-height: 1.4;
+    line-height: 1.5;
     min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background-image: radial-gradient(circle at 100% 0%, var(--accent-glow), transparent 50%);
     overflow-x: hidden;
+    transition: background 0.3s ease;
 }
 
-/* --- 1. Master Alignment Utilities --- */
+/* --- 1. The Kinetic Glass Card --- */
+.glass-card { 
+    background: var(--surface); 
+    border: 1px solid var(--border); 
+    border-radius: var(--radius-card); /* 3rem curves */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    width: 100%;
+    padding: 2rem;
+}
+
+/* --- 2. The Kinetic Well (Inputs) --- */
+.glass-well {
+    background: var(--bg-app); 
+    border: 1px solid var(--border);
+    border-radius: var(--radius-well);
+    transition: all 0.2s var(--ease-kinetic);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Focus State: Matched to your "indigo" preference glow */
+.glass-well:focus-within {
+    background: var(--surface);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-glow);
+    transform: scale(1.01);
+}
+
+input {
+    width: 100%;
+    padding: 1.15rem 1.5rem;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+/* --- 3. Interaction Triggers --- */
+.btn-primary { 
+    width: 100%;
+    height: 64px;
+    background: var(--accent);
+    color: white; 
+    border: none;
+    border-radius: var(--radius-btn);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-primary:active { transform: var(--press-depth); }
+
+/* --- 4. Atomic Utilities (Reference Scale) --- */
+.container { width: 100%; max-width: 400px; padding: 1.5rem; }
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
 .items-center { align-items: center; }
 .justify-center { justify-content: center; }
-.justify-between { justify-content: space-between; }
 .text-center { text-align: center; }
-.v-center { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-10 { margin-bottom: 2.5rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-8 { margin-top: 2rem; }
 
-/* --- 2. Micro-Precision Spacing (Scale: 1=4px) --- */
-.m-0 { margin: 0; } .mx-auto { margin-left: auto; margin-right: auto; }
-.mt-1 { margin-top: 4px; } .mt-2 { margin-top: 8px; } .mt-4 { margin-top: 16px; } .mt-6 { margin-top: 24px; } .mt-8 { margin-top: 32px; } .mt-12 { margin-top: 48px; }
-.mb-1 { margin-bottom: 4px; } .mb-2 { margin-bottom: 8px; } .mb-4 { margin-bottom: 16px; } .mb-6 { margin-bottom: 24px; } .mb-8 { margin-bottom: 32px; } .mb-12 { margin-bottom: 48px; }
+/* Typography */
+.text-xs { font-size: 10px; }
+.text-sm { font-size: 0.875rem; }
+.text-3xl { font-size: 2.25rem; }
+.font-bold { font-weight: 700; }
+.font-black { font-weight: 900; }
+.uppercase { text-transform: uppercase; }
+.tracking-widest { letter-spacing: 0.2em; }
+.text-muted { color: var(--text-muted); }
+.text-accent { color: var(--accent); }
 
-.p-4 { padding: 16px; } .p-6 { padding: 24px; } .p-8 { padding: 32px; } .p-10 { padding: 40px; }
-.px-6 { padding-left: 24px; padding-right: 24px; } .py-4 { padding-top: 16px; padding-bottom: 16px; }
-
-/* --- 3. Dimensional Control --- */
-.w-full { width: 100%; } .max-w-md { max-width: 440px; } .h-auto { height: auto; }
-.rounded-22 { border-radius: 22px; } .rounded-32 { border-radius: 32px; } .rounded-40 { border-radius: 40px; }
-
-/* --- 4. Athletic SVG Engine --- */
-svg.icon {
-    stroke-linecap: round; stroke-linejoin: round; fill: none;
-    transition: all 0.3s var(--ease-kinetic);
-}
-.icon-accent { stroke: var(--accent); }
-.icon-white { stroke: #ffffff; }
-.icon-glow-lg { filter: drop-shadow(0 0 12px var(--accent)); }
-.icon-bold { stroke-width: 3px; } .icon-extrabold { stroke-width: 4px; }
-
-/* --- 5. Haptic Components --- */
-.haptic { transition: transform 0.2s var(--ease-kinetic); cursor: pointer; }
-.haptic:active { transform: var(--press-depth); filter: brightness(0.9); }
-
-.glass-card { 
-    background: var(--surface); border: 1px solid var(--border); 
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-}
-.glass-blur { backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }
-
-.glass-well {
-    background: var(--glass); border: 1px solid var(--border);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-    display: flex; align-items: center; transition: all 0.3s var(--ease-kinetic);
-}
-
-.glass-well:focus-within {
-    background: var(--surface); border-color: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-glow), inset 0 2px 4px rgba(0,0,0,0.01);
-    transform: translateY(-2px);
-}
-
-/* --- 6. Interaction Elements --- */
-.btn {
-    display: flex; align-items: center; justify-content: center;
-    border: none; font-weight: 900;
-}
-.btn-primary { 
-    background: linear-gradient(135deg, var(--accent), #0284c7); 
-    color: white; box-shadow: 0 15px 30px -10px var(--accent-glow);
-}
-
-input { 
-    width: 100%; border: none; outline: none; background: transparent; 
-    font-family: inherit; font-size: 1rem; color: var(--text-main);
-}
-
-/* --- 7. Layout --- */
-.container { width: 100%; margin: 0 auto; }
-.glass-orb { position: fixed; border-radius: 50%; filter: blur(90px); z-index: var(--z-neg); opacity: 0.6; pointer-events: none; }
-.orb-1 { width: 400px; height: 400px; background: var(--accent-glow); top: -100px; right: -80px; }
-.orb-2 { width: 350px; height: 350px; background: rgba(45, 212, 191, 0.2); bottom: -60px; left: -80px; }
-
-/* --- 8. Typography --- */
-.font-black { font-weight: 900; } .font-bold { font-weight: 700; } .font-medium { font-weight: 500; }
-.uppercase { text-transform: uppercase; } .tracking-widest { letter-spacing: 0.3em; } .tracking-tighter { letter-spacing: -0.05em; }
-.text-xs { font-size: 11px; } .text-lg { font-size: 1.25rem; } .text-3xl { font-size: 3.5rem; }
-.text-muted { color: var(--text-muted); } .text-accent { color: var(--accent); }
+/* Background Decoration */
+.glass-orb { position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.5; }
+.orb-1 { width: 300px; height: 300px; background: var(--accent-glow); top: -50px; right: -50px; }
+.orb-2 { width: 250px; height: 250px; background: rgba(45, 212, 191, 0.1); bottom: -50px; left: -50px; }
