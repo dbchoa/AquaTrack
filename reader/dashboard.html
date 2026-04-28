@@ -38,12 +38,13 @@
             border-color: rgba(79, 172, 254, 0.3);
         }
 
-        /* 1. THE GLASS VESSEL */
+        /* 1. THE GLASS VESSEL - PERMANENT VOID BACKGROUND */
         .glass-vessel {
             position: relative;
             width: 72px;
             height: 72px;
-            background: rgba(255, 255, 255, 0.1);
+            /* SOVEREIGN FIX: Forced deep background for icon contrast */
+            background: #011030; 
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             overflow: hidden;
@@ -58,15 +59,14 @@
             left: 0;
             width: 100%;
             height: 85%;
-            /* SURGICAL FIX: Triple stop gradient for deep volume look */
             background: linear-gradient(to bottom, 
-                #4facfe 0%,   /* Surface Cyan */
-                #0072ff 50%,  /* Middle Azure */
-                #003366 100%  /* Bottom Navy */
+                #4facfe 0%,   
+                #0072ff 50%,  
+                #003366 100%  
             );
         }
 
-        /* 3. THE SLOSHING WAVE */
+        /* 3. THE SLOSHING WAVE - SYNCED TO VOID BACKGROUND */
         .water-fill::before {
             content: "";
             position: absolute;
@@ -74,11 +74,11 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: rgba(248, 250, 252, 1);
+            /* SYNCED: Uses the same void color to create the slosh crest */
+            background: #011030; 
             border-radius: 38%;
             animation: slosh 5s linear infinite;
         }
-        .dark .water-fill::before { background: #020617; }
 
         /* 4. GLASS REFLECTION LAYER */
         .glass-vessel::after {
