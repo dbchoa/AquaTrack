@@ -38,7 +38,7 @@
             border-color: rgba(79, 172, 254, 0.3);
         }
 
-        /* 1. THE GLASS VESSEL - PERMANENT VOID BACKGROUND */
+        /* THE GLASS VESSEL - PERMANENT VOID BACKGROUND */
         .glass-vessel {
             position: relative;
             width: 72px;
@@ -51,7 +51,6 @@
             transform: translate3d(0, 0, 0);
         }
 
-        /* 2. THE TRIPLE GRADIENT WATER */
         .water-fill {
             position: absolute;
             bottom: 0;
@@ -61,7 +60,6 @@
             background: linear-gradient(to bottom, #4facfe 0%, #0072ff 50%, #003366 100%);
         }
 
-        /* 3. THE SLOSHING WAVE */
         .water-fill::before {
             content: "";
             position: absolute;
@@ -74,7 +72,6 @@
             animation: slosh 5s linear infinite;
         }
 
-        /* 4. GLASS REFLECTION LAYER */
         .glass-vessel::after {
             content: "";
             position: absolute;
@@ -94,7 +91,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Modal Styles */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
@@ -114,15 +110,32 @@
             <div class="flex justify-between items-end relative z-10">
                 <div>
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1">Cycle Completion</p>
-                    <h3 id="display-progress-pct" class="text-5xl font-black tracking-tighter dark:text-white stat-glow">0<span class="text-lg opacity-50 text-water ml-1">%</span></h3>
+                    <h3 id="display-progress-pct" class="text-5xl font-black tracking-tighter dark:text-white stat-glow">84<span class="text-lg opacity-50 text-water ml-1">%</span></h3>
                 </div>
                 <div class="text-right">
-                    <span id="display-counts" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-water">0 / 0 Units</span>
+                    <span id="display-counts" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-water">168 / 200 Units</span>
                 </div>
             </div>
             <div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full mt-8 overflow-hidden">
-                <div id="progress-bar" class="h-full bg-water shadow-[0_0_15px_#4facfe] transition-all duration-1000 ease-out" style="width: 0%"></div>
+                <div id="progress-bar" class="h-full bg-water shadow-[0_0_15px_#4facfe] transition-all duration-1000 ease-out" style="width: 84%"></div>
             </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-10">
+            <div class="glass-card p-6 rounded-32 bg-white/40 dark:bg-slate-900/40 border border-white dark:border-slate-800">
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Sector</p>
+                <h4 id="active-street" class="text-xl font-bold dark:text-white truncate">Acacia St.</h4>
+            </div>
+            <div class="glass-card p-6 rounded-32 bg-white/40 dark:bg-slate-900/40 border border-white dark:border-slate-800">
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Remaining</p>
+                <h4 id="remaining-units" class="text-xl font-bold text-water">32 Units</h4>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-8 px-2">
+            <div class="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 mr-6 opacity-40"></div>
+            <h2 class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400">Activity Log</h2>
+            <div class="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 ml-6 opacity-40"></div>
         </div>
 
         <div id="readings-feed" class="space-y-4">
@@ -146,23 +159,24 @@
     </div>
 
     <div id="readingModal" class="hidden fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
-        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-8 border dark:border-slate-800 shadow-2xl overflow-hidden relative">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-8 border dark:border-slate-800 shadow-2xl relative">
             
             <div id="modal-stage-locator">
                 <h3 class="text-xl font-bold mb-6 text-center">Locate Unit</h3>
                 <div class="space-y-4 mb-8">
-                    <select id="input-street" class="w-full p-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold outline-none text-center">
+                    <select id="input-street" class="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm font-bold outline-none text-center">
                         <option value="" disabled selected>Select Street...</option>
                         <option value="Acacia">Acacia St.</option>
                         <option value="Banyan">Banyan St.</option>
                         <option value="Cedar">Cedar St.</option>
                     </select>
                     <div class="flex gap-2">
-                        <input id="input-block" type="number" placeholder="Block" class="w-1/2 p-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold outline-none text-center">
-                        <input id="input-lot" type="number" placeholder="Lot" class="w-1/2 p-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold outline-none text-center">
+                        <input id="input-block" type="number" placeholder="Block" class="w-1/2 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm font-bold outline-none text-center">
+                        <input id="input-lot" type="number" placeholder="Lot" class="w-1/2 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-sm font-bold outline-none text-center">
                     </div>
                 </div>
-                <button onclick="identifyHomeowner()" class="w-full py-4 bg-water text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-water/20 active:scale-95 transition-all">Identify Unit</button>
+                <button onclick="identifyHomeowner()" class="w-full py-4 bg-water text-white rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all">Identify Unit</button>
+                <button onclick="closeReadingModal()" class="w-full mt-2 py-3 text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cancel</button>
             </div>
 
             <div id="modal-stage-reading" class="hidden">
@@ -170,12 +184,10 @@
                     <h4 id="display-homeowner" class="text-lg font-black dark:text-white">...</h4>
                     <p id="display-acc-id" class="text-[10px] text-water font-bold tracking-widest uppercase">ACC-000</p>
                 </div>
-
                 <div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl mb-4 text-center">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Current Reading (m³)</label>
-                    <input id="input-reading" type="number" placeholder="000.0" class="w-full text-center text-5xl font-light bg-transparent text-water outline-none">
+                    <input id="input-reading" type="number" step="0.1" placeholder="000.0" class="w-full text-center text-5xl font-light bg-transparent text-water outline-none">
                 </div>
-
                 <div class="flex justify-between px-4 mb-8">
                     <div class="text-left">
                         <span class="text-[9px] text-slate-400 block uppercase font-bold">Previous</span>
@@ -186,9 +198,8 @@
                         <span id="display-cost" class="font-black text-sm text-emerald-500">₱ 0.00</span>
                     </div>
                 </div>
-
                 <div class="flex gap-3">
-                    <button onclick="closeReadingModal()" class="flex-1 py-4 text-slate-400 font-bold uppercase text-xs">Cancel</button>
+                    <button onclick="resetModal()" class="flex-1 py-4 text-slate-400 font-bold uppercase text-xs">Back</button>
                     <button id="submit-reading-btn" onclick="submitReading()" class="flex-1 py-4 bg-water text-white rounded-2xl font-bold uppercase text-xs">Submit</button>
                 </div>
             </div>
@@ -206,26 +217,17 @@
 
         injectHeader();
 
-        // SUBDIVISION CONFIG (Can be moved to db later)
-        const BILLING_CONFIG = {
-            threshold: 10,
-            minFee: 300,
-            rate: 35
-        };
-
+        const BILLING_CONFIG = { threshold: 10, minFee: 300, rate: 35 };
         let activeAccount = null;
 
-        // --- MODAL LOGIC ---
         window.openReadingModal = () => {
             document.getElementById('readingModal').classList.remove('hidden');
             resetModal();
         };
 
-        window.closeReadingModal = () => {
-            document.getElementById('readingModal').classList.add('hidden');
-        };
+        window.closeReadingModal = () => document.getElementById('readingModal').classList.add('hidden');
 
-        const resetModal = () => {
+        window.resetModal = () => {
             document.getElementById('modal-stage-locator').classList.remove('hidden');
             document.getElementById('modal-stage-reading').classList.add('hidden');
             document.getElementById('input-block').value = '';
@@ -267,10 +269,7 @@
         const calculateLiveCost = (curr) => {
             const prev = activeAccount ? activeAccount.lastReading : 0;
             const consumption = Math.max(0, curr - prev);
-            let cost = consumption <= BILLING_CONFIG.threshold 
-                ? BILLING_CONFIG.minFee 
-                : consumption * BILLING_CONFIG.rate;
-            
+            let cost = (consumption <= BILLING_CONFIG.threshold) ? BILLING_CONFIG.minFee : (consumption * BILLING_CONFIG.rate);
             document.getElementById('display-cost').innerText = `₱ ${cost.toFixed(2)}`;
         };
 
@@ -281,7 +280,6 @@
         window.submitReading = async () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
             if(!reading || reading <= activeAccount.lastReading) return alert("Invalid reading");
-
             const btn = document.getElementById('submit-reading-btn');
             btn.innerText = "Saving..."; btn.disabled = true;
 
@@ -293,31 +291,24 @@
                     timestamp: Date.now(),
                     status: 'pending'
                 };
-
                 await db.ref('readings').push(readingData);
                 await db.ref(`homeowners/${activeAccount.id}`).update({ lastReading: reading });
-                
-                alert("Reading Submitted Successfully!");
+                alert("Reading Saved!");
                 closeReadingModal();
-            } catch (e) {
-                alert("Error saving data");
-            } finally {
-                btn.innerText = "Submit"; btn.disabled = false;
-            }
+            } catch (e) { alert("Save Error"); }
+            finally { btn.innerText = "Submit"; btn.disabled = false; }
         };
 
-        // --- INITIAL DATA SEEDING (Run once for testing) ---
-        const seedTestData = async () => {
+        // EXPOSED FOR CONSOLE: seedTestData()
+        window.seedTestData = async () => {
             const testAccounts = {
                 "ACC-001": { name: "Juan Dela Cruz", street: "Acacia", block: 1, lot: 5, lastReading: 120.5 },
                 "ACC-002": { name: "Maria Clara", street: "Banyan", block: 2, lot: 12, lastReading: 85.0 },
                 "ACC-003": { name: "Jose Rizal", street: "Acacia", block: 1, lot: 8, lastReading: 210.2 }
             };
             await db.ref('homeowners').set(testAccounts);
-            console.log("Test Data Seeded Successfully");
+            console.log("Database Seeded Successfully, Master.");
         };
-        // seedTestData(); // Uncomment this line, run the page once, then comment it out again.
-
     </script>
 </body>
 </html>
