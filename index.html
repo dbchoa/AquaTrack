@@ -6,26 +6,57 @@
     <title>AquaTrack - Secure Access</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Surgical addition for the droplet aesthetic */
-        .btn-droplet {
-            background: radial-gradient(circle at 30% 30%, var(--accent-light), var(--accent));
-            box-shadow: 0 10px 20px -5px var(--accent-alpha), inset 0 -4px 6px rgba(0,0,0,0.1);
-            border: none;
-            transition: transform 0.1s ease, box-shadow 0.2s ease;
+        /* [Inference]: Using local overrides to ensure layout precision regardless of style.css state */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        .btn-droplet:active {
-            transform: scale(0.96);
-        }
-        .glass-well input:focus {
-            outline: 2px solid var(--accent);
-            box-shadow: 0 0 15px var(--accent-alpha);
-        }
-        .centered-container {
-            min-height: 100vh;
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+        }
+
+        .btn-droplet {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+            color: white !important;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(79, 172, 254, 0.3);
+            transition: all 0.3s ease;
+            outline: none !important; /* Removes the rectangular focus ring */
+        }
+
+        .btn-droplet:focus {
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.5); /* Rounded focus glow */
+        }
+
+        .btn-droplet:active {
+            transform: translateY(2px);
+        }
+
+        .font-light-sans {
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .input-focus:focus-within {
+            border-color: #4facfe !important;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+        
+        /* [Inference]: Overriding potential bold defaults from global styles */
+        h1, h2, label {
+            font-weight: 500 !important;
         }
     </style>
 </head>
@@ -35,46 +66,47 @@
     <div class="glass-orb orb-1"></div>
     <div class="glass-orb orb-2"></div>
 
-    <div class="container max-w-md px-6 centered-container">
-        <div class="text-center mb-10">
-            <div class="haptic" style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: var(--surface); border-radius: 50%; box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1); margin-bottom: 1rem; border: 1px solid var(--border);">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+    <main class="login-wrapper">
+        <div class="text-center mb-8">
+            <div class="haptic" style="display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; background: white; border-radius: 24px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 1.5rem;">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="#4facfe">
                     <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
                 </svg>
             </div>
-            <h1 class="text-4xl font-black tracking-tighter text-main m-0" style="line-height: 1;">
-                Aqua<span class="text-accent" style="font-weight: 300;">Track</span>
+            <h1 class="text-3xl font-light-sans text-main m-0">
+                Aqua<span style="color: #4facfe;">Track</span>
             </h1>
+            <p class="text-muted text-xs uppercase tracking-widest mt-2" style="opacity: 0.5;">Subdivision Gateway</p>
         </div>
 
-        <div class="glass-card glass-blur p-10 mb-8 rounded-32 w-full shadow-2xl">
-            <h2 class="text-center font-black text-2xl mb-10 tracking-tighter text-main">Sign In</h2>
+        <div class="glass-card p-8 rounded-32 w-full shadow-xl" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3);">
+            <h2 class="text-center text-xl mb-8 text-main">Sign In</h2>
             
-            <form id="login-form" class="flex flex-col gap-6">
+            <form id="login-form" class="flex flex-col gap-5">
                 <div class="form-group">
-                    <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-2 block">Email Address</label>
-                    <div class="glass-well rounded-22">
-                        <input type="email" id="email" placeholder="name@aquatrack.sys" required autocomplete="email" class="font-medium w-full p-4 bg-transparent border-none">
+                    <label class="text-xs uppercase tracking-widest ml-1 mb-2 block" style="color: #666;">Personnel ID</label>
+                    <div class="glass-well rounded-16 input-focus" style="background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); overflow: hidden;">
+                        <input type="email" id="email" placeholder="name@aquatrack.sys" required class="w-full p-4 bg-transparent border-none outline-none font-light-sans">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-2 block">Access Key</label>
-                    <div class="glass-well rounded-22">
-                        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" class="font-medium w-full p-4 bg-transparent border-none">
+                    <label class="text-xs uppercase tracking-widest ml-1 mb-2 block" style="color: #666;">Access Key</label>
+                    <div class="glass-well rounded-16 input-focus" style="background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); overflow: hidden;">
+                        <input type="password" id="password" placeholder="••••••••" required class="w-full p-4 bg-transparent border-none outline-none font-light-sans">
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-droplet mt-6 w-full haptic py-5 rounded-full text-white" id="login-btn">
-                    <span class="uppercase tracking-widest text-sm font-black">Initialize Session</span>
+                <button type="submit" class="btn-droplet w-full py-4 rounded-full haptic" id="login-btn">
+                    <span class="uppercase tracking-widest text-xs font-bold">Initialize Session</span>
                 </button>
             </form>
         </div>
 
-        <p class="text-center text-muted font-bold text-xs uppercase tracking-widest" style="opacity: 0.4;">
-            &copy; 2026 AQUATRACK INFRASTRUCTURE [cite: 1]
+        <p class="mt-8 text-center text-muted text-xs uppercase tracking-widest" style="opacity: 0.3;">
+            &copy; 2026 AQUATRACK INFRASTRUCTURE
         </p>
-    </div>
+    </main>
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
@@ -82,7 +114,6 @@
         import { login } from './js/auth.js';
         import { initTheme } from './js/utils.js';
         
-        // Initialize Theme
         initTheme();
 
         const loginForm = document.getElementById('login-form');
@@ -91,15 +122,14 @@
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             loginBtn.disabled = true;
-            const originalContent = loginBtn.innerHTML;
-            loginBtn.innerHTML = '<span class="uppercase tracking-widest text-xs font-black">Verifying...</span>';
+            const originalText = loginBtn.innerText;
+            loginBtn.innerText = 'VERIFYING...';
             
             try {
                 await login(document.getElementById('email').value, document.getElementById('password').value);
             } catch (err) {
                 loginBtn.disabled = false;
-                loginBtn.innerHTML = originalContent;
-                // Toast notification is handled inside auth.js
+                loginBtn.innerText = originalText;
             }
         });
     </script>
