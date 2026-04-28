@@ -3,42 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AquaTrack - Login</title>
+    <title>AquaTrack - Authorized Access</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="toast-container"></div>
+    
+    <div class="glass-orb orb-1"></div>
+    <div class="glass-orb orb-2"></div>
+
     <div class="container">
-        <div class="text-center" style="margin-bottom: 3rem;">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: var(--surface); border-radius: 24px; box-shadow: var(--shadow-premium); margin-bottom: 1.5rem; border: 1px solid var(--border);">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 88px; height: 88px; background: var(--surface); border-radius: 28px; box-shadow: var(--shadow-premium); margin-bottom: 1.5rem; border: 1px solid var(--border);">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
                 </svg>
             </div>
-            <h1 style="font-weight: 900; font-size: 3rem; letter-spacing: -0.06em; color: var(--text-main); line-height: 0.8;">
-                Aqua<span style="color: var(--accent); font-weight: 500;">Track</span>
+            <h1 style="font-weight: 900; font-size: 3.2rem; letter-spacing: -0.07em; color: var(--text-main); line-height: 0.8;">
+                Aqua<span style="color: var(--accent); font-weight: 400;">Track</span>
             </h1>
-            <p class="text-muted" style="font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; font-size: 0.7rem; margin-top: 12px; opacity: 0.7;">
-                Subdivision Water Hub
+            <p class="text-muted" style="font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; font-size: 0.65rem; margin-top: 16px; opacity: 0.6;">
+                Personnel Gateway
             </p>
         </div>
 
-        <div class="card" style="backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); background: var(--glass);">
-            <h2 style="font-weight: 900; margin-bottom: 2rem; letter-spacing: -0.04em; font-size: 1.75rem; text-align: center;">Welcome back</h2>
+        <div class="card" style="backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); background: var(--glass);">
+            <h2 style="font-weight: 900; margin-bottom: 2rem; letter-spacing: -0.04em; font-size: 1.6rem; text-align: center;">Sign In</h2>
             
             <form id="login-form">
                 <div class="form-group">
-                    <label>Account Email</label>
-                    <input type="email" id="email" placeholder="name@example.com" required>
+                    <label>Personnel ID</label>
+                    <input type="email" id="email" placeholder="name@aquatrack.sys" required autocomplete="email">
                 </div>
 
                 <div class="form-group">
-                    <label>Secure Password</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
+                    <label>Access Token</label>
+                    <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
                 </div>
 
-                <button type="submit" class="btn btn-primary" id="login-btn">
-                    <span>Enter Dashboard</span>
+                <button type="submit" class="btn btn-primary" id="login-btn" style="margin-top: 0.5rem;">
+                    <span>Initiate Session</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                         <polyline points="12 5 19 12 12 19"></polyline>
@@ -47,8 +51,8 @@
             </form>
         </div>
 
-        <p class="text-center text-muted" style="font-size: 0.75rem; font-weight: 700; margin-top: 1rem; opacity: 0.5;">
-            PRECISION RESOURCE TRACKING v3.2
+        <p class="text-center text-muted" style="font-size: 0.7rem; font-weight: 700; margin-top: 1rem; opacity: 0.4;">
+            SECURE INFRASTRUCTURE V3.5
         </p>
     </div>
 
@@ -59,7 +63,6 @@
     <script type="module">
         import { login } from './js/auth.js';
         import { initTheme } from './js/utils.js';
-
         initTheme();
 
         const loginForm = document.getElementById('login-form');
@@ -68,10 +71,13 @@
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span>Verifying...</span>';
-            await login(document.getElementById('email').value, document.getElementById('password').value);
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = '<span>Enter Dashboard</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+            loginBtn.innerHTML = '<span>Authenticating...</span>';
+            try {
+                await login(document.getElementById('email').value, document.getElementById('password').value);
+            } catch (err) {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<span>Initiate Session</span>';
+            }
         });
     </script>
 </body>
