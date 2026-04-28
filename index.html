@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AquaTrack - Secure Access</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Surgical addition for the droplet aesthetic */
+        .btn-droplet {
+            background: radial-gradient(circle at 30% 30%, var(--accent-light), var(--accent));
+            box-shadow: 0 10px 20px -5px var(--accent-alpha), inset 0 -4px 6px rgba(0,0,0,0.1);
+            border: none;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+        }
+        .btn-droplet:active {
+            transform: scale(0.96);
+        }
+        .glass-well input:focus {
+            outline: 2px solid var(--accent);
+            box-shadow: 0 0 15px var(--accent-alpha);
+        }
+        .centered-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body class="glass-blur">
     <div id="toast-container" class="fixed pt-12 pr-4 z-max" style="top:0; right:0;"></div>
@@ -12,51 +35,44 @@
     <div class="glass-orb orb-1"></div>
     <div class="glass-orb orb-2"></div>
 
-    <div class="container max-w-md px-6 v-center">
-        <div class="text-center mb-8">
-            <div class="haptic" style="display: inline-flex; align-items: center; justify-content: center; width: 88px; height: 88px; background: var(--surface); border-radius: 28px; box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1); margin-bottom: 1.5rem; border: 1px solid var(--border);">
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <div class="container max-w-md px-6 centered-container">
+        <div class="text-center mb-10">
+            <div class="haptic" style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: var(--surface); border-radius: 50%; box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1); margin-bottom: 1rem; border: 1px solid var(--border);">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
                 </svg>
             </div>
-            <h1 class="text-3xl font-black tracking-tighter text-main m-0" style="line-height: 0.8;">
-                Aqua<span class="text-accent" style="font-weight: 400;">Track</span>
+            <h1 class="text-4xl font-black tracking-tighter text-main m-0" style="line-height: 1;">
+                Aqua<span class="text-accent" style="font-weight: 300;">Track</span>
             </h1>
-            <p class="text-muted font-bold uppercase tracking-widest text-xs mt-4" style="opacity: 0.6;">
-                Subdivision Gateway
-            </p>
         </div>
 
-        <div class="glass-card glass-blur p-8 mb-6 rounded-32">
-            <h2 class="text-center font-black text-xl mb-8 tracking-tighter text-main">Personnel Access</h2>
+        <div class="glass-card glass-blur p-10 mb-8 rounded-32 w-full shadow-2xl">
+            <h2 class="text-center font-black text-2xl mb-10 tracking-tighter text-main">Sign In</h2>
             
-            <form id="login-form" class="flex flex-col gap-2">
-                <div class="form-group mb-4">
-                    <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-2 block">Personnel ID</label>
+            <form id="login-form" class="flex flex-col gap-6">
+                <div class="form-group">
+                    <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-2 block">Email Address</label>
                     <div class="glass-well rounded-22">
-                        <input type="email" id="email" placeholder="name@aquatrack.sys" required autocomplete="email" class="font-medium">
+                        <input type="email" id="email" placeholder="name@aquatrack.sys" required autocomplete="email" class="font-medium w-full p-4 bg-transparent border-none">
                     </div>
                 </div>
 
-                <div class="form-group mb-4">
+                <div class="form-group">
                     <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-2 block">Access Key</label>
                     <div class="glass-well rounded-22">
-                        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" class="font-medium">
+                        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" class="font-medium w-full p-4 bg-transparent border-none">
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary mt-4 w-full haptic h-auto py-4 rounded-lg" id="login-btn">
-                    <span class="uppercase tracking-widest text-xs font-black">Initialize Session</span>
-                    <svg class="icon ml-2" width="20" height="20" viewBox="0 0 24 24" style="stroke: white; stroke-width: 4;">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
+                <button type="submit" class="btn btn-droplet mt-6 w-full haptic py-5 rounded-full text-white" id="login-btn">
+                    <span class="uppercase tracking-widest text-sm font-black">Initialize Session</span>
                 </button>
             </form>
         </div>
 
         <p class="text-center text-muted font-bold text-xs uppercase tracking-widest" style="opacity: 0.4;">
-            &copy; 2026 AQUATRACK INFRASTRUCTURE V4.7
+            &copy; 2026 AQUATRACK INFRASTRUCTURE [cite: 1]
         </p>
     </div>
 
@@ -65,6 +81,8 @@
     <script type="module">
         import { login } from './js/auth.js';
         import { initTheme } from './js/utils.js';
+        
+        // Initialize Theme
         initTheme();
 
         const loginForm = document.getElementById('login-form');
@@ -73,12 +91,15 @@
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             loginBtn.disabled = true;
+            const originalContent = loginBtn.innerHTML;
             loginBtn.innerHTML = '<span class="uppercase tracking-widest text-xs font-black">Verifying...</span>';
+            
             try {
                 await login(document.getElementById('email').value, document.getElementById('password').value);
             } catch (err) {
                 loginBtn.disabled = false;
-                loginBtn.innerHTML = '<span class="uppercase tracking-widest text-xs font-black">Initialize Session</span>';
+                loginBtn.innerHTML = originalContent;
+                // Toast notification is handled inside auth.js
             }
         });
     </script>
