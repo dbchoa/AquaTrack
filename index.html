@@ -3,52 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AquaTrack - Authorized Personnel Gateway</title>
+    <title>AquaTrack - Secure Access</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="glass-blur">
-    <div id="toast-container" class="fixed pt-12 pr-4 z-max" style="top:0; right:0;"></div>
-    
+<body>
+    <div id="toast-container"></div>
     <div class="glass-orb orb-1"></div>
     <div class="glass-orb orb-2"></div>
 
-    <div class="container flex flex-col justify-center h-screen">
-        <div class="text-center mb-12">
-            <div class="flex items-center justify-center mx-auto mb-8 haptic" style="width: 100px; height: 100px; background: var(--surface); border-radius: 32px; box-shadow: 0 20px 40px -12px var(--accent-glow); border: 1px solid var(--border);">
-                <svg class="icon icon-lg icon-glow" viewBox="0 0 24 24" style="stroke: var(--accent); stroke-width: 3;">
+    <div class="container">
+        <div class="text-center mb-8">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 88px; height: 88px; background: var(--surface); border-radius: 28px; box-shadow: var(--shadow-premium); margin-bottom: 1.5rem; border: 1px solid var(--border);">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
                 </svg>
             </div>
-            <h1 class="text-3xl font-black tracking-tight text-main m-0" style="line-height: 0.8; font-size: 3.5rem;">
+            <h1 style="font-weight: 900; font-size: 3.2rem; letter-spacing: -0.07em; color: var(--text-main); line-height: 0.8;">
                 Aqua<span style="color: var(--accent); font-weight: 400;">Track</span>
             </h1>
-            <p class="text-muted font-black uppercase tracking-widest text-xs mt-6" style="opacity: 0.9; letter-spacing: 0.4em;">
-                Infrastructure Command
+            <p class="text-muted font-bold" style="letter-spacing: 0.25em; text-transform: uppercase; font-size: 0.65rem; margin-top: 16px; opacity: 0.6;">
+                Subdivision Gateway
             </p>
         </div>
 
-        <div class="glass-card glass-blur p-8 mb-8">
-            <div class="text-center mb-10">
-                <h2 class="font-black text-xl tracking-tight text-main m-0">Authorized Access</h2>
-                <div class="mx-auto mt-3 w-10 h-1 rounded-full" style="background: var(--accent); opacity: 0.4;"></div>
-            </div>
+        <div class="card mb-6">
+            <h2 class="text-center font-bold mb-8" style="font-size: 1.6rem; letter-spacing: -0.04em;">Personnel Access</h2>
             
-            <form id="login-form" class="flex flex-col">
-                <div class="form-group mb-8"> <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-2 block">Personnel ID</label>
-                    <div class="glass-well">
-                        <input type="email" id="email" placeholder="name@aquatrack.sys" required autocomplete="email" class="font-medium" style="background: transparent; border: none; color: var(--text-main);">
-                    </div>
+            <form id="login-form" class="flex flex-col gap-6">
+                <div class="form-group">
+                    <label>Personnel ID</label>
+                    <input type="email" id="email" placeholder="name@aquatrack.sys" required autocomplete="email">
                 </div>
 
-                <div class="form-group mb-12"> <label class="text-accent text-xs font-black uppercase tracking-widest ml-2 mb-2 block">Access Key</label>
-                    <div class="glass-well">
-                        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" class="font-medium" style="background: transparent; border: none; color: var(--text-main);">
-                    </div>
+                <div class="form-group">
+                    <label>Access Key</label>
+                    <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
                 </div>
 
-                <button type="submit" class="btn btn-primary w-full haptic" id="login-btn" style="height: 68px; border-radius: 20px;">
-                    <span class="uppercase tracking-widest text-xs font-black">Initiate Session</span>
-                    <svg class="icon ml-3" width="20" height="20" viewBox="0 0 24 24" style="stroke: white; stroke-width: 4;">
+                <button type="submit" class="btn btn-primary mt-4" id="login-btn">
+                    <span>Initialize Session</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                         <polyline points="12 5 19 12 12 19"></polyline>
                     </svg>
@@ -56,11 +50,9 @@
             </form>
         </div>
 
-        <div class="text-center mt-4">
-            <p class="text-muted font-black text-xs uppercase tracking-widest" style="opacity: 0.4;">
-                &copy; 2026 AQUATRACK SYSTEMS V4.5
-            </p>
-        </div>
+        <p class="text-center text-muted font-bold" style="font-size: 0.7rem; opacity: 0.4;">
+            &copy; 2026 AQUATRACK INFRASTRUCTURE V3.6
+        </p>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
@@ -78,13 +70,12 @@
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             loginBtn.disabled = true;
-            const originalContent = loginBtn.innerHTML;
-            loginBtn.innerHTML = '<span class="uppercase tracking-widest text-xs font-black">Authenticating...</span>';
+            loginBtn.innerHTML = '<span>Verifying...</span>';
             try {
                 await login(document.getElementById('email').value, document.getElementById('password').value);
             } catch (err) {
                 loginBtn.disabled = false;
-                loginBtn.innerHTML = originalContent;
+                loginBtn.innerHTML = '<span>Initialize Session</span>';
             }
         });
     </script>
