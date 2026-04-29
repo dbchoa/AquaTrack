@@ -20,23 +20,26 @@
     </script>
     <style>
         .stat-glow { text-shadow: 0 0 15px rgba(79, 172, 254, 0.4); }
-        .dash-row {
+        .glass-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(15, 23, 42, 0.05);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-blur: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
-        .dark .dash-row {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .dash-row:hover {
-            transform: translateY(-2px);
-            background: white;
-            box-shadow: 0 10px 25px -5px rgba(79, 172, 254, 0.15);
-        }
-        .dark .dash-row:hover {
-            background: rgba(30, 41, 59, 0.7);
-            border-color: rgba(79, 172, 254, 0.3);
+
+        /* CONSOLE LOG STYLE - ATHLETIC & LEAN */
+        .console-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-left: 2px solid #0072ff;
+            margin-bottom: 0.25rem;
+            transition: opacity 0.3s ease;
         }
 
         /* GLASS VESSEL HUD */
@@ -83,12 +86,13 @@
     <div id="toast-container"></div>
 
     <main class="max-w-xl mx-auto p-6 pt-12 pb-44">
+        
         <div class="mb-10 text-center">
             <h2 class="text-3xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">Reader Dashboard</h2>
             <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[0.4em] mt-2 opacity-60">Field Telemetry Terminal</p>
         </div>
         
-        <div class="glass-card p-8 rounded-48 border-b-4 border-water mb-8 bg-white/90 dark:bg-slate-900/50 shadow-xl relative overflow-hidden">
+        <div class="glass-card p-8 rounded-48 border-b-4 border-water mb-8 bg-white/90 dark:bg-slate-900/50 shadow-2xl relative overflow-hidden">
             <div class="flex justify-between items-end relative z-10">
                 <div>
                     <p class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-1">Cycle Completion</p>
@@ -114,14 +118,13 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-between mb-8 px-2">
+        <div class="flex items-center justify-between mb-4 px-2">
             <div class="h-[1px] flex-1 bg-slate-300 dark:bg-slate-800 mr-6 opacity-40"></div>
             <h2 class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Activity Log</h2>
             <div class="h-[1px] flex-1 bg-slate-300 dark:bg-slate-800 ml-6 opacity-40"></div>
         </div>
 
-        <div id="readings-feed" class="space-y-4">
-            </div>
+        <div id="readings-feed" class="flex flex-col space-y-1"></div>
     </main>
 
     <div class="fixed bottom-0 left-0 right-0 z-[110] bg-white/90 dark:bg-[#020617]/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/5 px-6 py-5">
@@ -146,24 +149,15 @@
             <div id="modal-stage-locator">
                 <h3 class="text-xl font-bold mb-6 text-center text-slate-900 dark:text-white">Locate Unit</h3>
                 <div class="space-y-4 mb-8">
-                    <div class="relative">
-                        <i class="bi bi-geo-alt-fill absolute left-4 top-1/2 -translate-y-1/2 text-waterDark/60 dark:text-water/50"></i>
-                        <select id="input-street" class="w-full p-4 pl-12 bg-slate-200/50 dark:bg-slate-800/50 border-none rounded-2xl text-sm font-bold outline-none appearance-none text-slate-900 dark:text-white">
-                            <option value="" disabled selected>Select Street...</option>
-                            <option value="Acacia">Acacia St.</option>
-                            <option value="Banyan">Banyan St.</option>
-                            <option value="Cedar">Cedar St.</option>
-                        </select>
-                    </div>
+                    <select id="input-street" class="w-full p-4 bg-slate-200/50 dark:bg-slate-800/50 border-none rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white">
+                        <option value="" disabled selected>Select Street...</option>
+                        <option value="Acacia">Acacia St.</option>
+                        <option value="Banyan">Banyan St.</option>
+                        <option value="Cedar">Cedar St.</option>
+                    </select>
                     <div class="flex gap-2">
-                        <div class="relative w-1/2">
-                            <i class="bi bi-grid-3x3-gap-fill absolute left-4 top-1/2 -translate-y-1/2 text-waterDark/60 dark:text-water/50"></i>
-                            <input id="input-block" type="number" placeholder="Block" class="w-full p-4 pl-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white">
-                        </div>
-                        <div class="relative w-1/2">
-                            <i class="bi bi-house-door-fill absolute left-4 top-1/2 -translate-y-1/2 text-waterDark/60 dark:text-water/50"></i>
-                            <input id="input-lot" type="number" placeholder="Lot" class="w-full p-4 pl-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white">
-                        </div>
+                        <input id="input-block" type="number" placeholder="Block" class="w-1/2 p-4 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white">
+                        <input id="input-lot" type="number" placeholder="Lot" class="w-1/2 p-4 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white">
                     </div>
                 </div>
                 <div class="flex flex-col gap-2">
@@ -179,7 +173,7 @@
                 </div>
                 <div class="bg-slate-200/50 dark:bg-slate-800/50 p-6 rounded-3xl mb-4 text-center">
                     <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 block text-center">Current Reading (m³)</label>
-                    <input id="input-reading" type="number" step="0.1" placeholder="000.0" class="w-full text-center text-5xl font-bold bg-transparent text-waterDark dark:text-water outline-none">
+                    <input id="input-reading" type="number" step="0.1" placeholder="000.0" class="w-full text-center text-5xl font-black bg-transparent text-waterDark dark:text-water outline-none">
                 </div>
                 <div class="flex justify-between px-4 mb-8">
                     <div class="text-left">
@@ -223,7 +217,6 @@
                     <button id="final-submit-btn" onclick="submitReading()" class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold uppercase text-xs shadow-lg shadow-emerald-500/20">Yes</button>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -241,7 +234,34 @@
         const BILLING_CONFIG = { threshold: 10, minFee: 300, rate: 35 };
         let activeAccount = null;
 
-        // --- NAVIGATION LOGIC ---
+        // --- UI RENDERING: CONSOLE FEED ---
+        const renderFeed = (readings) => {
+            const container = document.getElementById('readings-feed');
+            container.innerHTML = '';
+            
+            // Latest 6 readings for depth
+            const latest = Object.values(readings).reverse().slice(0, 6);
+            
+            latest.forEach((r, idx) => {
+                const opacity = Math.max(0.1, 1 - (idx * 0.18));
+                const entry = document.createElement('div');
+                entry.className = 'console-entry';
+                entry.style.opacity = opacity;
+                
+                entry.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black text-slate-900 dark:text-white uppercase">${r.accountId}</span>
+                        <span class="text-[9px] text-slate-500 font-bold">${new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    <div class="font-mono text-sm font-black text-waterDark dark:text-water">
+                        ${r.reading.toFixed(1)} <span class="text-[8px] opacity-60">m³</span>
+                    </div>
+                `;
+                container.appendChild(entry);
+            });
+        };
+
+        // --- NAVIGATION & MODAL STATE ---
         window.openReadingModal = () => {
             document.getElementById('readingModal').classList.remove('hidden');
             window.resetModalState();
@@ -262,16 +282,15 @@
             const readingStr = document.getElementById('input-reading').value;
             const reading = parseFloat(readingStr);
             if(!readingStr || isNaN(reading) || reading <= activeAccount.lastReading) {
-                return toast("Reading too low", "info");
+                return toast("Reading must be higher than previous", "info");
             }
 
             document.getElementById('modal-stage-reading').classList.add('hidden');
             document.getElementById('modal-stage-confirm').classList.remove('hidden');
 
-            // Populate Summary for Stage 3
             document.getElementById('confirm-name').innerText = activeAccount.name;
             document.getElementById('confirm-street').innerText = activeAccount.street;
-            document.getElementById('confirm-bl').innerText = `${activeAccount.block} / ${activeAccount.lot}`;
+            document.getElementById('confirm-bl').innerText = `B${activeAccount.block} L${activeAccount.lot}`;
             document.getElementById('confirm-reading').innerText = `${reading.toFixed(1)} m³`;
         };
 
@@ -280,17 +299,16 @@
             document.getElementById('modal-stage-reading').classList.remove('hidden');
         };
 
-        // --- CORE LOGIC ---
+        // --- DATA OPERATIONS ---
         window.identifyHomeowner = async () => {
             const street = document.getElementById('input-street').value;
             const block = document.getElementById('input-block').value;
             const lot = document.getElementById('input-lot').value;
 
-            if(!street || !block || !lot) return toast("Identity details required", "info");
+            if(!street || !block || !lot) return toast("Surgical requirement: Complete location details", "info");
 
             const snapshot = await db.ref('homeowners').once('value');
             const homeowners = snapshot.val();
-            
             activeAccount = null;
             for(let id in homeowners) {
                 const h = homeowners[id];
@@ -307,9 +325,7 @@
                 document.getElementById('display-acc-id').innerText = activeAccount.id;
                 document.getElementById('display-prev').innerText = `${activeAccount.lastReading} m³`;
                 calculateLiveCost(0);
-            } else {
-                toast("Homeowner not found", "error");
-            }
+            } else { toast("Unit not found", "error"); }
         };
 
         const calculateLiveCost = (curr) => {
@@ -344,6 +360,11 @@
             finally { btn.innerText = "Yes"; btn.disabled = false; }
         };
 
+        // Real-time HUD Listener
+        db.ref('readings').limitToLast(10).on('value', (snap) => {
+            if(snap.exists()) renderFeed(snap.val());
+        });
+
         window.seedTestData = async () => {
             const testAccounts = {
                 "ACC-001": { name: "Juan Dela Cruz", street: "Acacia", block: 1, lot: 5, lastReading: 120.5 },
@@ -351,7 +372,7 @@
                 "ACC-003": { name: "Jose Rizal", street: "Acacia", block: 1, lot: 8, lastReading: 210.2 }
             };
             await db.ref('homeowners').set(testAccounts);
-            toast("Sovereign Data Seeded", "success");
+            toast("Database Seeded", "success");
         };
 
         auth.onAuthStateChanged((user) => {
