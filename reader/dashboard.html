@@ -30,19 +30,11 @@
             background: rgba(30, 41, 59, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        /* CONSOLE LOG STYLE - ATHLETIC & LEAN */
         .console-entry {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            border-left: 2px solid #0072ff;
-            margin-bottom: 0.25rem;
-            transition: opacity 0.3s ease;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.75rem 1rem; border-left: 2px solid #0072ff;
+            margin-bottom: 0.25rem; transition: opacity 0.3s ease;
         }
-
-        /* GLASS VESSEL HUD */
         .glass-vessel {
             position: relative; width: 72px; height: 72px;
             background: #011030; border: 2px solid rgba(255, 255, 255, 0.3);
@@ -50,71 +42,58 @@
             box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
             transform: translate3d(0, 0, 0);
         }
-
         .water-fill {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 85%;
             background: linear-gradient(to bottom, #4facfe 0%, #0072ff 50%, #003366 100%);
         }
-
         .water-fill::before {
             content: ""; position: absolute; top: -165%; left: -50%; width: 200%; height: 200%;
             background: #011030; border-radius: 38%; animation: slosh 5s linear infinite;
         }
-
-        .glass-vessel::after {
-            content: ""; position: absolute; top: 5px; left: 12px; width: 25px; height: 12px;
-            background: rgba(255, 255, 255, 0.3); border-radius: 50%;
-            transform: rotate(-15deg); z-index: 25; pointer-events: none;
-        }
-
         @keyframes slosh { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { 
-            -webkit-appearance: none; margin: 0; 
-        }
-
-        #toast-container {
-            position: fixed; bottom: 110px; left: 50%;
-            transform: translateX(-50%); z-index: 999; pointer-events: none;
-        }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #toast-container { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); z-index: 999; pointer-events: none; }
     </style>
 </head>
 <body class="bg-slate-100 dark:bg-[#020617] font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
     
     <header></header>
-
     <div id="toast-container"></div>
 
     <main class="max-w-xl mx-auto p-6 pt-12 pb-44">
-        
         <div class="mb-10 text-center">
             <h2 class="text-3xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">Reader Dashboard</h2>
             <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[0.4em] mt-2 opacity-60">Field Telemetry Terminal</p>
         </div>
         
-        <div class="glass-card p-8 rounded-48 border-b-4 border-water mb-8 bg-white/90 dark:bg-slate-900/50 shadow-2xl relative overflow-hidden">
+        <div class="glass-card p-8 rounded-48 border-b-4 border-water mb-4 bg-white/90 dark:bg-slate-900/50 shadow-2xl relative overflow-hidden">
             <div class="flex justify-between items-end relative z-10">
                 <div>
                     <p class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-1">Cycle Completion</p>
-                    <h3 id="display-progress-pct" class="text-5xl font-black tracking-tighter text-slate-900 dark:text-white stat-glow">84<span class="text-lg opacity-50 text-waterDark dark:text-water ml-1">%</span></h3>
+                    <h3 id="display-progress-pct" class="text-5xl font-black tracking-tighter text-slate-900 dark:text-white stat-glow">--<span class="text-lg opacity-50 text-waterDark dark:text-water ml-1">%</span></h3>
                 </div>
                 <div class="text-right">
-                    <span id="display-counts" class="text-[10px] font-bold text-waterDark dark:text-water uppercase tracking-widest">168 / 200 Units</span>
+                    <span id="display-counts" class="text-[10px] font-bold text-waterDark dark:text-water uppercase tracking-widest">Initialising...</span>
                 </div>
             </div>
             <div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full mt-8 overflow-hidden">
-                <div id="progress-bar" class="h-full bg-waterDark dark:bg-water shadow-[0_0_15px_#4facfe] transition-all duration-1000 ease-out" style="width: 84%"></div>
+                <div id="progress-bar" class="h-full bg-waterDark dark:bg-water shadow-[0_0_15px_#4facfe] transition-all duration-1000 ease-out" style="width: 0%"></div>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-10">
-            <div class="glass-card p-6 rounded-32 shadow-sm border border-white/40">
-                <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Current Sector</p>
-                <h4 id="active-street" class="text-xl font-bold text-slate-900 dark:text-white truncate">Acacia St.</h4>
+        <div class="glass-card p-5 rounded-32 mb-8 flex items-center justify-between border-dashed border-water/30 bg-water/5">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-2xl bg-water/10 flex items-center justify-center text-waterDark">
+                    <i class="bi bi-info-circle-fill text-lg"></i>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Prevailing Rate</p>
+                    <h4 id="rate-summary-text" class="text-xs font-bold text-slate-700 dark:text-slate-300 italic">Syncing telemetry...</h4>
+                </div>
             </div>
-            <div class="glass-card p-6 rounded-32 shadow-sm border border-white/40">
-                <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Remaining</p>
-                <h4 id="remaining-units" class="text-xl font-bold text-waterDark dark:text-water">32 Units</h4>
+            <div class="text-right">
+                <p id="rate-min-fee" class="text-sm font-black text-waterDark dark:text-water">₱ --</p>
+                <p class="text-[8px] font-bold uppercase opacity-50">Base Fee</p>
             </div>
         </div>
 
@@ -129,12 +108,12 @@
 
     <div class="fixed bottom-0 left-0 right-0 z-[110] bg-white/90 dark:bg-[#020617]/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/5 px-6 py-5">
         <div class="max-w-xl mx-auto flex justify-center items-center">
-            <button onclick="openReadingModal()" class="relative flex items-center justify-center group active:scale-90 transition-all duration-300">
+            <button onclick="openReadingModal()" class="relative flex items-center justify-center group active:scale-95 transition-all duration-300">
                 <span class="absolute inset-0 rounded-full bg-waterDark animate-ping opacity-20 pointer-events-none"></span>
                 <div class="glass-vessel">
                     <div class="water-fill"></div>
                     <div class="absolute inset-0 flex items-center justify-center z-20">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                     </div>
@@ -156,65 +135,45 @@
                         <option value="Cedar">Cedar St.</option>
                     </select>
                     <div class="flex gap-2">
-                        <input id="input-block" type="number" placeholder="Block" class="w-1/2 p-4 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white">
-                        <input id="input-lot" type="number" placeholder="Lot" class="w-1/2 p-4 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white">
+                        <input id="input-block" type="number" placeholder="Block" class="w-1/2 p-4 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white text-center">
+                        <input id="input-lot" type="number" placeholder="Lot" class="w-1/2 p-4 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white text-center">
                     </div>
                 </div>
-                <div class="flex flex-col gap-2">
-                    <button onclick="identifyHomeowner()" class="w-full py-4 bg-waterDark dark:bg-water text-white rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all">Identify Unit</button>
-                    <button onclick="closeReadingModal()" class="w-full py-3 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cancel reading</button>
-                </div>
+                <button onclick="identifyHomeowner()" class="w-full py-4 bg-waterDark text-white rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all">Identify Unit</button>
+                <button onclick="closeReadingModal()" class="w-full py-3 mt-2 text-slate-500 font-bold uppercase text-[10px] tracking-widest text-center">Cancel reading</button>
             </div>
 
             <div id="modal-stage-reading" class="hidden">
                 <div class="text-center mb-6">
                     <h4 id="display-homeowner" class="text-lg font-black text-slate-900 dark:text-white">...</h4>
-                    <p id="display-acc-id" class="text-[10px] text-waterDark dark:text-water font-bold tracking-widest uppercase">ACC-000</p>
+                    <p id="display-acc-id" class="text-[10px] text-waterDark font-bold tracking-widest uppercase">ACC-000</p>
                 </div>
                 <div class="bg-slate-200/50 dark:bg-slate-800/50 p-6 rounded-3xl mb-4 text-center">
-                    <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 block text-center">Current Reading (m³)</label>
-                    <input id="input-reading" type="number" step="0.1" placeholder="000.0" class="w-full text-center text-5xl font-black bg-transparent text-waterDark dark:text-water outline-none">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Current Reading (m³)</label>
+                    <input id="input-reading" type="number" step="0.1" placeholder="000.0" class="w-full text-center text-5xl font-black bg-transparent text-waterDark outline-none">
                 </div>
                 <div class="flex justify-between px-4 mb-8">
-                    <div class="text-left">
-                        <span class="text-[9px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Previous</span>
+                    <div>
+                        <span class="text-[9px] text-slate-500 block uppercase font-bold">Previous</span>
                         <span id="display-prev" class="font-bold text-sm text-slate-900 dark:text-white">0.0 m³</span>
                     </div>
                     <div class="text-right">
-                        <span class="text-[9px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Estimated PHP</span>
-                        <span id="display-cost" class="font-black text-sm text-emerald-600 dark:text-emerald-500">₱ 0.00</span>
+                        <span class="text-[9px] text-slate-500 block uppercase font-bold">Estimated PHP</span>
+                        <span id="display-cost" class="font-black text-sm text-emerald-600">₱ 0.00</span>
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <button onclick="resetModalState()" class="flex-1 py-4 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">Back</button>
-                    <button onclick="showConfirmation()" class="flex-1 py-4 bg-waterDark dark:bg-water text-white rounded-2xl font-bold uppercase text-xs">Submit</button>
+                    <button onclick="resetModalState()" class="flex-1 py-4 text-slate-500 font-bold uppercase text-xs">Back</button>
+                    <button onclick="showConfirmation()" class="flex-1 py-4 bg-waterDark text-white rounded-2xl font-bold uppercase text-xs active:scale-95">Submit</button>
                 </div>
             </div>
 
-            <div id="modal-stage-confirm" class="hidden">
-                <h3 class="text-xl font-bold mb-6 text-center text-slate-900 dark:text-white">Confirm Data</h3>
-                <div class="space-y-3 bg-slate-200/50 dark:bg-slate-800/50 p-6 rounded-3xl mb-8">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-500 dark:text-slate-400 font-bold uppercase">Homeowner</span>
-                        <span id="confirm-name" class="text-slate-900 dark:text-white font-black text-right">...</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-500 dark:text-slate-400 font-bold uppercase">Street</span>
-                        <span id="confirm-street" class="text-slate-900 dark:text-white font-black">...</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-500 dark:text-slate-400 font-bold uppercase">Block / Lot</span>
-                        <span id="confirm-bl" class="text-slate-900 dark:text-white font-black">...</span>
-                    </div>
-                    <div class="border-t border-slate-300 dark:border-slate-700 my-2 pt-2 flex justify-between text-sm">
-                        <span class="text-slate-500 dark:text-slate-400 font-bold uppercase">Reading</span>
-                        <span id="confirm-reading" class="text-waterDark dark:text-water font-black">0.0 m³</span>
-                    </div>
-                </div>
-                <p class="text-[10px] text-center text-slate-500 dark:text-slate-400 uppercase font-bold tracking-widest mb-6">Submit above data?</p>
+            <div id="modal-stage-confirm" class="hidden text-center">
+                <h3 class="text-xl font-bold mb-6 text-slate-900 dark:text-white uppercase">Confirm Data</h3>
+                <div id="confirm-summary" class="bg-slate-200/50 dark:bg-slate-800/50 p-6 rounded-3xl mb-8 text-left text-xs space-y-2"></div>
                 <div class="flex gap-3">
-                    <button onclick="backToReading()" class="flex-1 py-4 text-slate-500 dark:text-slate-400 font-bold uppercase text-xs">No</button>
-                    <button id="final-submit-btn" onclick="submitReading()" class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold uppercase text-xs shadow-lg shadow-emerald-500/20">Yes</button>
+                    <button onclick="backToReading()" class="flex-1 py-4 text-slate-500 font-bold uppercase text-xs">No</button>
+                    <button id="final-submit-btn" onclick="submitReading()" class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold uppercase text-xs shadow-lg active:scale-95">Yes, Upload</button>
                 </div>
             </div>
         </div>
@@ -227,41 +186,52 @@
     <script type="module">
         import { injectHeader } from '../js/header-component.js';
         import { db, auth } from '../js/firebase-init.js';
-        import { toast } from '../js/utils.js';
+        import { toast, formatCurrency } from '../js/utils.js';
 
         injectHeader();
 
-        const BILLING_CONFIG = { threshold: 10, minFee: 300, rate: 35 };
         let activeAccount = null;
+        let billingConfig = { threshold: 15, minFee: 200, excessRate: 15 }; // Default v2.2 Blueprint
 
-        // --- UI RENDERING: CONSOLE FEED ---
-        const renderFeed = (readings) => {
-            const container = document.getElementById('readings-feed');
-            container.innerHTML = '';
-            
-            // Latest 6 readings for depth
-            const latest = Object.values(readings).reverse().slice(0, 6);
-            
-            latest.forEach((r, idx) => {
-                const opacity = Math.max(0.1, 1 - (idx * 0.18));
-                const entry = document.createElement('div');
-                entry.className = 'console-entry';
-                entry.style.opacity = opacity;
-                
-                entry.innerHTML = `
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black text-slate-900 dark:text-white uppercase">${r.accountId}</span>
-                        <span class="text-[9px] text-slate-500 font-bold">${new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    </div>
-                    <div class="font-mono text-sm font-black text-waterDark dark:text-water">
-                        ${r.reading.toFixed(1)} <span class="text-[8px] opacity-60">m³</span>
-                    </div>
-                `;
-                container.appendChild(entry);
-            });
+        // 1. Fetch Dynamic Billing Configuration
+        const fetchConfig = async () => {
+            const snap = await db.ref('config/billing').once('value');
+            if (snap.exists()) {
+                billingConfig = snap.val();
+                updateRateUI();
+            }
         };
 
-        // --- NAVIGATION & MODAL STATE ---
+        const updateRateUI = () => {
+            document.getElementById('rate-summary-text').innerText = `1st ${billingConfig.threshold}m³ @ ₱${billingConfig.minFee} + ₱${billingConfig.excessRate}/m³ excess`;
+            document.getElementById('rate-min-fee').innerText = formatCurrency(billingConfig.minFee);
+        };
+
+        const calculateAmount = (curr, prev) => {
+            const consumption = Math.max(0, curr - prev);
+            if (consumption <= billingConfig.threshold) return billingConfig.minFee;
+            return billingConfig.minFee + ((consumption - billingConfig.threshold) * billingConfig.excessRate);
+        };
+
+        fetchConfig();
+
+        // 2. HUD Stats Logic
+        const updateHUDStats = async () => {
+            const hSnap = await db.ref('homeowners').once('value');
+            const rSnap = await db.ref('readings').once('value');
+            const total = hSnap.exists() ? Object.keys(hSnap.val()).length : 0;
+            const captured = rSnap.exists() ? Object.values(rSnap.val()).filter(r => {
+                const start = new Date().setHours(0,0,0,0);
+                return r.timestamp >= start;
+            }).length : 0;
+
+            const pct = total > 0 ? Math.round((captured / total) * 100) : 0;
+            document.getElementById('display-progress-pct').innerHTML = `${pct}<span class="text-lg opacity-50 ml-1">%</span>`;
+            document.getElementById('display-counts').innerText = `${captured} / ${total} Units`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+        };
+
+        // 3. Modal Handlers
         window.openReadingModal = () => {
             document.getElementById('readingModal').classList.remove('hidden');
             window.resetModalState();
@@ -273,39 +243,15 @@
             document.getElementById('modal-stage-locator').classList.remove('hidden');
             document.getElementById('modal-stage-reading').classList.add('hidden');
             document.getElementById('modal-stage-confirm').classList.add('hidden');
-            document.getElementById('input-block').value = '';
-            document.getElementById('input-lot').value = '';
             document.getElementById('input-reading').value = '';
         };
 
-        window.showConfirmation = () => {
-            const readingStr = document.getElementById('input-reading').value;
-            const reading = parseFloat(readingStr);
-            if(!readingStr || isNaN(reading) || reading <= activeAccount.lastReading) {
-                return toast("Reading must be higher than previous", "info");
-            }
-
-            document.getElementById('modal-stage-reading').classList.add('hidden');
-            document.getElementById('modal-stage-confirm').classList.remove('hidden');
-
-            document.getElementById('confirm-name').innerText = activeAccount.name;
-            document.getElementById('confirm-street').innerText = activeAccount.street;
-            document.getElementById('confirm-bl').innerText = `B${activeAccount.block} L${activeAccount.lot}`;
-            document.getElementById('confirm-reading').innerText = `${reading.toFixed(1)} m³`;
-        };
-
-        window.backToReading = () => {
-            document.getElementById('modal-stage-confirm').classList.add('hidden');
-            document.getElementById('modal-stage-reading').classList.remove('hidden');
-        };
-
-        // --- DATA OPERATIONS ---
         window.identifyHomeowner = async () => {
             const street = document.getElementById('input-street').value;
             const block = document.getElementById('input-block').value;
             const lot = document.getElementById('input-lot').value;
 
-            if(!street || !block || !lot) return toast("Surgical requirement: Complete location details", "info");
+            if(!street || !block || !lot) return toast("Missing location details", "info");
 
             const snapshot = await db.ref('homeowners').once('value');
             const homeowners = snapshot.val();
@@ -324,60 +270,83 @@
                 document.getElementById('display-homeowner').innerText = activeAccount.name;
                 document.getElementById('display-acc-id').innerText = activeAccount.id;
                 document.getElementById('display-prev').innerText = `${activeAccount.lastReading} m³`;
-                calculateLiveCost(0);
             } else { toast("Unit not found", "error"); }
         };
 
-        const calculateLiveCost = (curr) => {
-            const prev = activeAccount ? activeAccount.lastReading : 0;
-            const consumption = Math.max(0, curr - prev);
-            let cost = (consumption <= BILLING_CONFIG.threshold) ? BILLING_CONFIG.minFee : (consumption * BILLING_CONFIG.rate);
-            document.getElementById('display-cost').innerText = `₱ ${cost.toFixed(2)}`;
+        document.getElementById('input-reading').addEventListener('input', (e) => {
+            const amount = calculateAmount(parseFloat(e.target.value) || 0, activeAccount?.lastReading || 0);
+            document.getElementById('display-cost').innerText = formatCurrency(amount);
+        });
+
+        window.showConfirmation = () => {
+            const reading = parseFloat(document.getElementById('input-reading').value);
+            if(isNaN(reading) || reading <= activeAccount.lastReading) return toast("Invalid reading", "info");
+
+            document.getElementById('modal-stage-reading').classList.add('hidden');
+            document.getElementById('modal-stage-confirm').classList.remove('hidden');
+            document.getElementById('confirm-summary').innerHTML = `
+                <div class="flex justify-between"><span>Account</span><span class="font-black">${activeAccount.id}</span></div>
+                <div class="flex justify-between"><span>Homeowner</span><span class="font-black text-right">${activeAccount.name}</span></div>
+                <div class="flex justify-between"><span>Consumption</span><span class="font-black">${(reading - activeAccount.lastReading).toFixed(1)} m³</span></div>
+                <div class="border-t border-slate-300 pt-2 flex justify-between text-waterDark font-black text-sm">
+                    <span>Estimate</span><span>${formatCurrency(calculateAmount(reading, activeAccount.lastReading))}</span>
+                </div>
+            `;
         };
 
-        document.getElementById('input-reading').addEventListener('input', (e) => {
-            calculateLiveCost(parseFloat(e.target.value) || 0);
-        });
+        window.backToReading = () => {
+            document.getElementById('modal-stage-confirm').classList.add('hidden');
+            document.getElementById('modal-stage-reading').classList.remove('hidden');
+        };
 
         window.submitReading = async () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
             const btn = document.getElementById('final-submit-btn');
-            btn.innerText = "..."; btn.disabled = true;
+            btn.innerText = "UPLOADING..."; btn.disabled = true;
 
             try {
                 const readingData = {
                     accountId: activeAccount.id,
+                    readerId: auth.currentUser.uid, // Historical Tracking
                     reading: reading,
                     prevReading: activeAccount.lastReading,
+                    consumption: reading - activeAccount.lastReading,
                     timestamp: Date.now(),
-                    status: 'pending'
+                    status: 'pending',
+                    appliedRates: { ...billingConfig }, // Immutable Rate Snapshot
+                    estimatedAmount: calculateAmount(reading, activeAccount.lastReading)
                 };
+
                 await db.ref('readings').push(readingData);
                 await db.ref(`homeowners/${activeAccount.id}`).update({ lastReading: reading });
-                toast("Telemetry Captured", "success");
+                toast("Captured & Audited", "success");
+                updateHUDStats();
                 closeReadingModal();
             } catch (e) { toast("Transmission Failed", "error"); }
-            finally { btn.innerText = "Yes"; btn.disabled = false; }
+            finally { btn.innerText = "Yes, Upload"; btn.disabled = false; }
         };
 
         // Real-time HUD Listener
         db.ref('readings').limitToLast(10).on('value', (snap) => {
-            if(snap.exists()) renderFeed(snap.val());
+            updateHUDStats();
+            if(!snap.exists()) return;
+            const container = document.getElementById('readings-feed');
+            container.innerHTML = '';
+            Object.values(snap.val()).reverse().forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'console-entry';
+                div.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black uppercase">${r.accountId}</span>
+                        <span class="text-[9px] text-slate-500 font-bold">${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    <div class="font-mono text-sm font-black text-waterDark">${r.reading.toFixed(1)} m³</div>
+                `;
+                container.appendChild(div);
+            });
         });
 
-        window.seedTestData = async () => {
-            const testAccounts = {
-                "ACC-001": { name: "Juan Dela Cruz", street: "Acacia", block: 1, lot: 5, lastReading: 120.5 },
-                "ACC-002": { name: "Maria Clara", street: "Banyan", block: 2, lot: 12, lastReading: 85.0 },
-                "ACC-003": { name: "Jose Rizal", street: "Acacia", block: 1, lot: 8, lastReading: 210.2 }
-            };
-            await db.ref('homeowners').set(testAccounts);
-            toast("Database Seeded", "success");
-        };
-
-        auth.onAuthStateChanged((user) => {
-            if (!user) window.location.href = '../index.html';
-        });
+        auth.onAuthStateChanged(user => { if (!user) window.location.href = '../index.html'; });
     </script>
 </body>
 </html>
