@@ -275,10 +275,10 @@
             const container = document.getElementById('readings-feed');
             container.innerHTML = '';
             
-            // Strictly last 5 entries
+            // Strictly last 5 entries for field synergy
             const latest = Object.values(readings).reverse().slice(0, 5);
             
-            // Dynamic Street Card: Update based on very last entry
+            // Dynamic Street Card: Update based on very last field activity
             if(latest.length > 0 && latest[0].locationAddress) {
                 const streetName = latest[0].locationAddress.split(' ')[0];
                 document.getElementById('active-street').innerText = streetName + ' St.';
@@ -291,9 +291,13 @@
                 const div = document.createElement('div');
                 div.className = 'console-entry';
                 div.style.opacity = opacity;
+                
+                // Enhanced format: Location Address — Reader Name
+                const label = `${r.locationAddress || 'Unit'} — ${r.readerName || 'Staff'}`;
+
                 div.innerHTML = `
                     <div class="flex flex-col">
-                        <span class="text-[10px] font-black uppercase text-slate-900 dark:text-white">${r.locationAddress || 'Unit'}</span>
+                        <span class="text-[10px] font-black uppercase text-slate-900 dark:text-white">${label}</span>
                         <span class="text-[9px] text-slate-500 font-bold">${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                     </div>
                     <div class="font-mono text-sm font-black text-waterDark dark:text-water">
@@ -320,7 +324,7 @@
             const street = document.getElementById('input-street').value;
             const block = document.getElementById('input-block').value;
             const lot = document.getElementById('input-lot').value;
-            if(!street || !block || !lot) return toast("Surgical requirement: Complete location details", "info");
+            if(!street || !block || !lot) return toast("Complete location details", "info");
 
             const snapshot = await db.ref('homeowners').once('value');
             const homeowners = snapshot.val();
@@ -371,22 +375,25 @@
             const btn = document.getElementById('final-submit-btn');
             btn.innerText = "..."; btn.disabled = true;
             try {
+                // Fetch current user name from session
+                const readerName = sessionStorage.getItem('aqt_user_name') || 'Staff';
+                
                 const readingData = {
                     accountId: activeAccount.id,
                     readerId: auth.currentUser.uid,
+                    readerName: readerName, // Captured for shared activity log
                     reading: reading,
                     prevReading: activeAccount.lastReading,
                     consumption: reading - activeAccount.lastReading,
                     timestamp: Date.now(),
                     status: 'pending',
-                    // Save enriched location string for fast Activity Log rendering
                     locationAddress: `${activeAccount.street} B${activeAccount.block} L${activeAccount.lot}`,
                     appliedRates: { ...billingConfig },
                     estimatedAmount: calculateAmount(reading, activeAccount.lastReading)
                 };
                 await db.ref('readings').push(readingData);
                 await db.ref(`homeowners/${activeAccount.id}`).update({ lastReading: reading });
-                toast("Captured & Audited", "success");
+                toast("Telemetry Captured", "success");
                 updateHUDStats();
                 closeReadingModal();
             } catch (e) { toast("Transmission Failed", "error"); }
