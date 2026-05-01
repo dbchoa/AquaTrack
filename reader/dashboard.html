@@ -417,14 +417,54 @@
             if(snap.exists()) renderFeed(snap.val());
         });
 
-        auth.onAuthStateChanged(user => { 
+        // REFINED SECURITY & ROLE-BASED ACCESS CONTROL (RBAC)
+        auth.onAuthStateChanged(async (user) => { 
             if (!user) {
-                window.location.href = '../index.html';
-            } else {
-                if (!sessionStorage.getItem('aqt_user_name') || !sessionStorage.getItem('aqt_user_role')) {
-                    auth.signOut().then(() => window.location.href = '../index.html');
+                // No Firebase session: clear local cache and move to login
+                sessionStorage.clear();
+                window.location.replace('../index.html');
+                return;
+            } 
+        
+            // 1. Check local session cache
+            let userName = sessionStorage.getItem('aqt_user_name');
+            let userRole = sessionStorage.getItem('aqt_user_role');
+        
+            // 2. Recovery Logic: If cache is empty, fetch from Database
+            if (!userName || !userRole) {
+                console.warn("Session cache missing. Attempting surgical recovery...");
+                try {
+                    const snap = await db.ref(`users/${user.uid}`).once('value');
+                    const userData = snap.val();
+        
+                    if (userData) {
+                        // Re-populate cache
+                        sessionStorage.setItem('aqt_user_name', userData.name);
+                        sessionStorage.setItem('aqt_user_role', userData.role);
+                        userName = userData.name;
+                        userRole = userData.role;
+                    } else {
+                        throw new Error("No database profile found.");
+                    }
+                } catch (e) {
+                    console.error("Recovery failed. Forcing re-authentication.");
+                    auth.signOut().then(() => window.location.replace('../index.html?error=session_loss'));
+                    return;
                 }
             }
+        
+            // 3. Strict Role Enforcement (The Pastor Pattern)
+            if (userRole !== 'reader') {
+                console.error(`Unauthorized access: Role [${userRole}] cannot access Reader Dashboard.`);
+                // Redirect to their correct home or login
+                window.location.replace('../index.html?error=unauthorized');
+                return;
+            }
+        
+            // 4. Session Confirmed: Initialize UI components
+            console.log(`Session Audited: ${userName} (${userRole})`);
+            updateHUDStats();
+            fetchConfig();
         });
     </script>
 </body>
