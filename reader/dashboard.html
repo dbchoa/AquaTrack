@@ -164,10 +164,7 @@
                 <h3 class="text-xl font-bold mb-6 text-center text-slate-900 dark:text-white">Locate Unit</h3>
                 <div class="space-y-4 mb-8">
                     <select id="input-street" class="w-full p-4 bg-slate-200/50 dark:bg-slate-800/50 border-none rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white">
-                        <option value="" disabled selected>Select Street...</option>
-                        <option value="Acacia">Acacia St.</option>
-                        <option value="Banyan">Banyan St.</option>
-                        <option value="Cedar">Cedar St.</option>
+                        <option value="" disabled selected>Loading Streets...</option>
                     </select>
                     <div class="flex gap-2">
                         <input id="input-block" type="number" placeholder="Block" class="w-1/2 p-4 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl text-sm font-bold outline-none text-slate-900 dark:text-white text-center">
@@ -230,6 +227,29 @@
         let activeAccount = null;
         let billingConfig = { threshold: 15, minFee: 200, excessRate: 15 };
 
+        // --- NEW: FETCH STREETS FROM CONFIG ---
+        const fetchStreets = async () => {
+            try {
+                const snap = await db.ref('config/streets').once('value');
+                const select = document.getElementById('input-street');
+                if (snap.exists() && select) {
+                    const streets = snap.val();
+                    select.innerHTML = '<option value="" disabled selected>Select Street...</option>';
+                    
+                    // Since it's an object from Firebase, we use Object.values
+                    Object.values(streets).forEach(st => {
+                        const opt = document.createElement('option');
+                        opt.value = st.name;
+                        opt.textContent = st.fullName;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to sync street telemetry:", e);
+                toast("Street sync failed", "error");
+            }
+        };
+
         const fetchConfig = async () => {
             const snap = await db.ref('config/billing').once('value');
             if (snap.exists()) {
@@ -239,8 +259,8 @@
         };
 
         const updateRateUI = () => {
-            // Updated string to provide comprehensive info in the summary line
-            document.getElementById('rate-summary-text').innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³ + ₱${billingConfig.excessRate}/m³ excess`;
+            const el = document.getElementById('rate-summary-text');
+            if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³ + ₱${billingConfig.excessRate}/m³ excess`;
         };
 
         const updateHUDStats = async () => {
@@ -276,8 +296,6 @@
             return billingConfig.minFee + ((consumption - billingConfig.threshold) * billingConfig.excessRate);
         };
 
-        fetchConfig();
-
         const renderFeed = (readings) => {
             const container = document.getElementById('readings-feed');
             container.innerHTML = '';
@@ -287,8 +305,6 @@
             if(latest.length > 0 && latest[0].locationAddress) {
                 const streetName = latest[0].locationAddress.split(' ')[0];
                 document.getElementById('active-street').innerText = streetName + ' St.';
-            } else {
-                document.getElementById('active-street').innerText = '---';
             }
 
             latest.forEach((r, idx) => {
@@ -311,6 +327,7 @@
             });
         };
 
+        // UI & Modal Handlers
         window.openReadingModal = () => {
             document.getElementById('readingModal').classList.remove('hidden');
             window.resetModalState();
@@ -372,42 +389,7 @@
             document.getElementById('modal-stage-confirm').classList.add('hidden');
             document.getElementById('modal-stage-reading').classList.remove('hidden');
         };
-
-        // --- TEMPORARY ONE-TIME SETUP SCRIPT ---
-        // Delete this entire block after you see the "Success" console message.
-        const runOneTimeStreetSetup = async () => {
-            const streetNames = [
-                "Belladonna", "Zinnia", "Verbena", "Golden Picus", 
-                "Blue Cypress", "White Papua", "Yellow Papua", 
-                "Azalea", "Penny Royal", "Acalaifa"
-            ];
-        
-            // Alphabetical sort as requested
-            const sorted = streetNames.sort((a, b) => a.localeCompare(b));
-            
-            const streetConfig = {};
-            sorted.forEach((name, index) => {
-                const id = `st_${String(index).padStart(2, '0')}`;
-                streetConfig[id] = {
-                    name: name,
-                    fullName: `${name} St.`
-                };
-            });
-        
-            try {
-                console.log("AquaTrack Deployment: Initializing config/streets...");
-                await db.ref('config/streets').set(streetConfig);
-                console.log("✅ Success! Firebase Street Lookup Table is now populated.");
-                alert("Street Setup Complete. You can now delete the one-time script block.");
-            } catch (error) {
-                console.error("❌ Deployment failed:", error);
-            }
-        };
-        
-        // Trigger the run immediately
-        //runOneTimeStreetSetup();
-        // --- END OF ONE-TIME SETUP ---
-        
+               
         window.submitReading = async () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
             const btn = document.getElementById('final-submit-btn');
@@ -415,7 +397,7 @@
             try {
                 const readerName = sessionStorage.getItem('aqt_user_name');
                 if(!readerName) {
-                     toast("Session Expired: Re-authenticating", "error");
+                     toast("Session loss. Re-logging...", "error");
                      setTimeout(() => window.location.href = '../index.html', 1500);
                      return;
                 }
@@ -442,11 +424,13 @@
             finally { btn.innerText = "Yes, Upload"; btn.disabled = false; }
         };
 
+        // Real-time listener for the feed
         db.ref('readings').limitToLast(10).on('value', (snap) => {
             updateHUDStats();
             if(snap.exists()) renderFeed(snap.val());
         });
 
+        // AUTH GUARD & INITIALIZATION
         auth.onAuthStateChanged(async (user) => { 
             if (!user) {
                 sessionStorage.clear();
@@ -454,24 +438,19 @@
                 return;
             } 
         
-            let userName = sessionStorage.getItem('aqt_user_name');
             let userRole = sessionStorage.getItem('aqt_user_role');
         
-            if (!userName || !userRole) {
+            if (!userRole) {
                 try {
                     const snap = await db.ref(`users/${user.uid}`).once('value');
                     const userData = snap.val();
-        
                     if (userData) {
                         sessionStorage.setItem('aqt_user_name', userData.name);
                         sessionStorage.setItem('aqt_user_role', userData.role);
-                        userName = userData.name;
                         userRole = userData.role;
-                    } else {
-                        throw new Error("No database profile found.");
                     }
                 } catch (e) {
-                    auth.signOut().then(() => window.location.replace('../index.html?error=session_loss'));
+                    auth.signOut().then(() => window.location.replace('../index.html'));
                     return;
                 }
             }
@@ -483,8 +462,7 @@
         
             updateHUDStats();
             fetchConfig();
-
-            
+            fetchStreets(); // POPULATE MODAL ON AUTH SUCCESS
         });
     </script>
 </body>
