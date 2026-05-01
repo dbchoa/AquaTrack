@@ -250,16 +250,28 @@
         const updateHUDStats = async () => {
             const hSnap = await db.ref('homeowners').once('value');
             const rSnap = await db.ref('readings').once('value');
-            const total = hSnap.exists() ? Object.keys(hSnap.val()).length : 0;
-            const captured = rSnap.exists() ? Object.values(rSnap.val()).filter(r => {
-                const start = new Date().setHours(0,0,0,0);
-                return r.timestamp >= start;
-            }).length : 0;
+            
+            const totalUnits = hSnap.exists() ? Object.keys(hSnap.val()).length : 0;
+            const uniqueCapturedAccounts = new Set();
 
-            const pct = total > 0 ? Math.round((captured / total) * 100) : 0;
+            if (rSnap.exists()) {
+                // FIXED: Filter for UNIQUE accounts within the current month
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+                
+                Object.values(rSnap.val()).forEach(r => {
+                    if (r.timestamp >= startOfMonth) {
+                        uniqueCapturedAccounts.add(r.accountId);
+                    }
+                });
+            }
+
+            const capturedCount = uniqueCapturedAccounts.size;
+            const pct = totalUnits > 0 ? Math.round((capturedCount / totalUnits) * 100) : 0;
+
             document.getElementById('display-progress-pct').innerHTML = `${pct}<span class="text-lg opacity-50 ml-1">%</span>`;
-            document.getElementById('display-counts').innerText = `${captured} / ${total} Units`;
-            document.getElementById('remaining-units').innerText = `${total - captured} Units`;
+            document.getElementById('display-counts').innerText = `${capturedCount} / ${totalUnits} Units`;
+            document.getElementById('remaining-units').innerText = `${totalUnits - capturedCount} Units`;
             document.getElementById('progress-bar').style.width = `${pct}%`;
         };
 
@@ -275,10 +287,8 @@
             const container = document.getElementById('readings-feed');
             container.innerHTML = '';
             
-            // Limit strictly to last 5 entries for field synergy
             const latest = Object.values(readings).reverse().slice(0, 5);
             
-            // Dynamic Street Card: Update based on very last activity in the field
             if(latest.length > 0 && latest[0].locationAddress) {
                 const streetName = latest[0].locationAddress.split(' ')[0];
                 document.getElementById('active-street').innerText = streetName + ' St.';
@@ -291,8 +301,6 @@
                 const div = document.createElement('div');
                 div.className = 'console-entry';
                 div.style.opacity = opacity;
-                
-                // Format: Location Address — Reader Name
                 const label = `${r.locationAddress || 'Unit'} — ${r.readerName || 'Staff'}`;
 
                 div.innerHTML = `
@@ -340,10 +348,7 @@
                 document.getElementById('modal-stage-locator').classList.add('hidden');
                 document.getElementById('modal-stage-reading').classList.remove('hidden');
                 document.getElementById('display-homeowner').innerText = activeAccount.name;
-                
-                // RESTORED UI Logic: Use location combination instead of raw ID
                 document.getElementById('display-acc-id').innerText = `${activeAccount.street} B${activeAccount.block} L${activeAccount.lot}`;
-                
                 document.getElementById('display-prev').innerText = `${activeAccount.lastReading} m³`;
             } else { toast("Unit not found", "error"); }
         };
@@ -378,13 +383,17 @@
             const btn = document.getElementById('final-submit-btn');
             btn.innerText = "..."; btn.disabled = true;
             try {
-                // Reader Info from Session Storage (handled by auth.js)
-                const readerName = sessionStorage.getItem('aqt_user_name') || 'Staff';
+                const readerName = sessionStorage.getItem('aqt_user_name');
+                if(!readerName) {
+                     toast("Session Expired: Re-authenticating", "error");
+                     setTimeout(() => window.location.href = '../index.html', 1500);
+                     return;
+                }
                 
                 const readingData = {
                     accountId: activeAccount.id,
                     readerId: auth.currentUser.uid,
-                    readerName: readerName, // Captured for shared field visibility
+                    readerName: readerName,
                     reading: reading,
                     prevReading: activeAccount.lastReading,
                     consumption: reading - activeAccount.lastReading,
@@ -408,12 +417,10 @@
             if(snap.exists()) renderFeed(snap.val());
         });
 
-        // SECURITY & SESSION INTEGRITY CHECK
         auth.onAuthStateChanged(user => { 
             if (!user) {
                 window.location.href = '../index.html';
             } else {
-                // Force re-login if session data is wiped but Firebase user persists
                 if (!sessionStorage.getItem('aqt_user_name') || !sessionStorage.getItem('aqt_user_role')) {
                     auth.signOut().then(() => window.location.href = '../index.html');
                 }
