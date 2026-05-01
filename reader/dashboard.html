@@ -373,6 +373,41 @@
             document.getElementById('modal-stage-reading').classList.remove('hidden');
         };
 
+        // --- TEMPORARY ONE-TIME SETUP SCRIPT ---
+        // Delete this entire block after you see the "Success" console message.
+        const runOneTimeStreetSetup = async () => {
+            const streetNames = [
+                "Belladonna", "Zinnia", "Verbena", "Golden Picus", 
+                "Blue Cypress", "White Papua", "Yellow Papua", 
+                "Azalea", "Penny Royal", "Acalaifa"
+            ];
+        
+            // Alphabetical sort as requested
+            const sorted = streetNames.sort((a, b) => a.localeCompare(b));
+            
+            const streetConfig = {};
+            sorted.forEach((name, index) => {
+                const id = `st_${String(index).padStart(2, '0')}`;
+                streetConfig[id] = {
+                    name: name,
+                    fullName: `${name} St.`
+                };
+            });
+        
+            try {
+                console.log("AquaTrack Deployment: Initializing config/streets...");
+                await db.ref('config/streets').set(streetConfig);
+                console.log("✅ Success! Firebase Street Lookup Table is now populated.");
+                alert("Street Setup Complete. You can now delete the one-time script block.");
+            } catch (error) {
+                console.error("❌ Deployment failed:", error);
+            }
+        };
+        
+        // Trigger the run immediately
+        //runOneTimeStreetSetup();
+        // --- END OF ONE-TIME SETUP ---
+        
         window.submitReading = async () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
             const btn = document.getElementById('final-submit-btn');
@@ -448,6 +483,8 @@
         
             updateHUDStats();
             fetchConfig();
+
+            
         });
     </script>
 </body>
