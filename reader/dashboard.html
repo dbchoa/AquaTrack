@@ -33,6 +33,7 @@
         .dark .glass-card {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(79, 172, 254, 0.4);
+            box-shadow: inset 0 0 12px rgba(79, 172, 254, 0.05);
         }
         .console-entry {
             display: flex;
@@ -41,7 +42,9 @@
             padding: 0.75rem 1rem;
             border-left: 2px solid #4facfe;
             margin-bottom: 0.25rem;
+            transition: opacity 0.3s ease;
         }
+        /* [Surgical]: Outbox Styling */
         .outbox-entry {
             border-left: 2px solid #f59e0b;
             background: rgba(245, 158, 11, 0.05);
@@ -51,6 +54,7 @@
             background: #011030; border: 2px solid rgba(79, 172, 254, 0.5);
             border-radius: 50%; overflow: hidden;
             box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+            transform: translate3d(0, 0, 0);
             transition: all 0.5s ease;
         }
         .water-fill {
@@ -58,6 +62,7 @@
             background: linear-gradient(to bottom, #4facfe 0%, #0072ff 50%, #003366 100%);
             transition: background 0.5s ease;
         }
+        /* [Surgical]: Offline Fill Logic */
         .is-offline .water-fill {
             background: linear-gradient(to bottom, #f59e0b 0%, #d97706 50%, #78350f 100%);
         }
@@ -67,13 +72,24 @@
             content: ""; position: absolute; top: -165%; left: -50%; width: 200%; height: 200%;
             background: #011030; border-radius: 38%; animation: slosh 5s linear infinite;
         }
+        .glass-vessel::after {
+            content: ""; position: absolute; top: 5px; left: 12px; width: 25px; height: 12px;
+            background: rgba(255, 255, 255, 0.3); border-radius: 50%;
+            transform: rotate(-15deg); z-index: 25; pointer-events: none;
+        }
         @keyframes slosh { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #toast-container { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); z-index: 999; pointer-events: none; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+        #toast-container {
+            position: fixed; bottom: 110px; left: 50%;
+            transform: translateX(-50%); z-index: 999; pointer-events: none;
+        }
     </style>
 </head>
 <body class="bg-slate-100 dark:bg-[#020617] font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
     
-    <header></header>
+    <header id="header-container"></header>
     <div id="toast-container"></div>
 
     <main class="max-w-xl mx-auto p-6 pt-12 pb-44">
@@ -87,7 +103,7 @@
             <div class="flex justify-between items-end relative z-10">
                 <div>
                     <p class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-1">Cycle Completion</p>
-                    <h3 id="display-progress-pct" class="text-5xl font-black tracking-tighter text-slate-900 dark:text-white stat-glow">--<span class="text-lg opacity-50 ml-1">%</span></h3>
+                    <h3 id="display-progress-pct" class="text-5xl font-black tracking-tighter text-slate-900 dark:text-white stat-glow">--<span class="text-lg opacity-50 text-waterDark dark:text-water ml-1">%</span></h3>
                 </div>
                 <div class="text-right">
                     <span id="display-counts" class="text-[10px] font-bold text-waterDark dark:text-water uppercase tracking-widest">Initialising HUD...</span>
@@ -98,7 +114,7 @@
             </div>
         </div>
 
-        <!-- [Surgical]: TERMINAL OUTBOX (Wait for Sync List) -->
+        <!-- [Surgical]: TERMINAL OUTBOX Section -->
         <div id="outbox-section" class="hidden mb-10">
             <div class="flex items-center justify-between mb-4 px-2">
                 <h2 class="text-[11px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-500 flex items-center gap-2">
@@ -124,6 +140,18 @@
             </div>
         </div>
 
+        <div class="glass-card p-5 rounded-xl mb-10 flex items-center justify-between border-water/30 bg-water/5">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-2xl bg-water/10 flex items-center justify-center text-waterDark">
+                    <i class="bi bi-info-circle-fill text-lg"></i>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Prevailing Rate</p>
+                    <h4 id="rate-summary-text" class="text-xs font-bold text-slate-700 dark:text-slate-300">Syncing rates...</h4>
+                </div>
+            </div>
+        </div>
+
         <div class="flex items-center justify-between mb-4 px-2">
             <div class="h-[1px] flex-1 bg-slate-300 dark:bg-slate-800 mr-6 opacity-40"></div>
             <h2 class="text-[11px] font-black uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Activity Log</h2>
@@ -133,7 +161,6 @@
         <div id="readings-feed" class="flex flex-col space-y-1"></div>
     </main>
 
-    <!-- FAB Container -->
     <div class="fixed bottom-0 left-0 right-0 z-[110] bg-white/90 dark:bg-[#020617]/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/5 px-6 py-5">
         <div class="max-w-xl mx-auto flex justify-center items-center">
             <button id="fab-container" onclick="openReadingModal()" class="relative flex items-center justify-center group active:scale-95 transition-all duration-300">
@@ -150,9 +177,9 @@
         </div>
     </div>
 
-    <!-- [Surgical]: Reading Modal remains identical for logic consistency -->
     <div id="readingModal" class="hidden fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-start md:items-center justify-center p-6 pt-19 md:pt-6">
         <div class="bg-white/95 dark:bg-slate-900/80 backdrop-blur-2xl w-full max-w-sm rounded-[2.5rem] p-8 border border-white dark:border-white/10 shadow-2xl relative overflow-hidden">
+            
             <div id="modal-stage-locator">
                 <h3 class="text-xl font-bold mb-6 text-center text-slate-900 dark:text-white">Locate Property</h3>
                 <div class="space-y-4 mb-8">
@@ -166,7 +193,7 @@
                 </div>
                 <div class="flex flex-col gap-2">
                     <button onclick="identifyProperty()" class="w-full py-4 bg-waterDark text-white rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all">Identify Unit</button>
-                    <button onclick="closeReadingModal()" class="w-full py-3 text-slate-500 font-bold uppercase text-[10px] tracking-widest text-center">Cancel</button>
+                    <button onclick="closeReadingModal()" class="w-full py-3 text-slate-500 font-bold uppercase text-[10px] tracking-widest text-center">Cancel reading</button>
                 </div>
             </div>
 
@@ -179,6 +206,16 @@
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Current Reading (m³)</label>
                     <input id="input-reading" type="number" step="0.1" placeholder="000.0" class="w-full text-center text-5xl font-black bg-transparent text-waterDark outline-none">
                 </div>
+                <div class="flex justify-between px-4 mb-8">
+                    <div class="text-left">
+                        <span class="text-[10px] text-slate-500 block uppercase font-bold">Previous</span>
+                        <span id="display-prev" class="font-bold text-md text-slate-900 dark:text-white">0.0 m³</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-500 block uppercase font-bold">Estimated PHP</span>
+                        <span id="display-cost" class="font-black text-md text-emerald-600 dark:text-emerald-500">₱ 0.00</span>
+                    </div>
+                </div>
                 <div class="flex gap-3">
                     <button onclick="resetModalState()" class="flex-1 py-4 text-slate-500 font-bold uppercase text-xs">Back</button>
                     <button onclick="showConfirmation()" class="flex-1 py-4 bg-waterDark text-white rounded-2xl font-bold uppercase text-xs active:scale-95">Submit</button>
@@ -190,7 +227,7 @@
                 <div id="confirm-summary" class="space-y-3 bg-slate-200/50 dark:bg-slate-800/50 p-6 rounded-3xl mb-8 text-xs"></div>
                 <div class="flex gap-3">
                     <button onclick="backToReading()" class="flex-1 py-4 text-slate-500 font-bold uppercase text-xs">No</button>
-                    <button id="final-submit-btn" onclick="submitReading()" class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold uppercase text-xs active:scale-95">Upload</button>
+                    <button id="final-submit-btn" onclick="submitReading()" class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-bold uppercase text-xs shadow-lg active:scale-95">Yes, Upload</button>
                 </div>
             </div>
         </div>
@@ -210,7 +247,7 @@
         let activeProperty = null;
         let billingConfig = { threshold: 15, minFee: 200, excessRate: 15 };
 
-        // [Surgical]: Connection Monitor & FAB Dynamic
+        // [Surgical]: Connection Monitor & FAB Dynamic Update
         db.ref(".info/connected").on("value", (snap) => {
             const isOnline = snap.val() === true;
             const fab = document.getElementById('fab-container');
@@ -219,40 +256,79 @@
 
             if (isOnline) {
                 fab.classList.remove('is-offline');
-                statusText.innerText = "● Online";
-                statusText.className = "text-[10px] text-emerald-500 font-bold uppercase tracking-[0.4em] mt-2";
-                ping.className = "absolute inset-0 rounded-full bg-waterDark animate-ping opacity-20 pointer-events-none";
+                if(statusText) statusText.innerText = "● Online";
+                if(statusText) statusText.className = "text-[10px] text-emerald-500 font-bold uppercase tracking-[0.4em] mt-2 opacity-60";
+                if(ping) ping.className = "absolute inset-0 rounded-full bg-waterDark animate-ping opacity-20 pointer-events-none";
             } else {
                 fab.classList.add('is-offline');
-                statusText.innerText = "● Offline (Cached)";
-                statusText.className = "text-[10px] text-amber-500 font-bold uppercase tracking-[0.4em] mt-2";
-                ping.className = "absolute inset-0 rounded-full bg-amber-500 animate-ping opacity-20 pointer-events-none";
+                if(statusText) statusText.innerText = "● Offline (Cached)";
+                if(statusText) statusText.className = "text-[10px] text-amber-500 font-bold uppercase tracking-[0.4em] mt-2 opacity-60";
+                if(ping) ping.className = "absolute inset-0 rounded-full bg-amber-500 animate-ping opacity-20 pointer-events-none";
             }
         });
+
+        const fetchStreets = async () => {
+            try {
+                const snap = await db.ref('config/streets').once('value');
+                const select = document.getElementById('input-street');
+                if (snap.exists() && select) {
+                    const streets = snap.val();
+                    select.innerHTML = '<option value="" disabled selected>Select Street...</option>';
+                    Object.values(streets).forEach(st => {
+                        const opt = document.createElement('option');
+                        opt.value = st.name;
+                        opt.textContent = st.fullName;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                toast("Street sync failed", "error");
+            }
+        };
+
+        const fetchConfig = async () => {
+            const snap = await db.ref('config/billing').once('value');
+            if (snap.exists()) {
+                billingConfig = snap.val();
+                const el = document.getElementById('rate-summary-text');
+                if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³ + ₱${billingConfig.excessRate}/m³ excess`;
+            }
+        };
 
         const updateHUDStats = async () => {
             const pSnap = await db.ref('properties').once('value');
             const rSnap = await db.ref('readings').once('value');
+            
             const totalUnits = pSnap.exists() ? Object.keys(pSnap.val()).length : 0;
             const uniqueCaptured = new Set();
-            const now = new Date();
-            const currentCycle = now.toISOString().slice(0, 7);
 
             if (rSnap.exists()) {
+                const now = new Date();
+                const currentCycle = now.toISOString().slice(0, 7);
+                
                 Object.values(rSnap.val()).forEach(r => {
-                    if (r.billingCycle === currentCycle) uniqueCaptured.add(r.propertyId);
+                    if (r.billingCycle === currentCycle) {
+                        uniqueCaptured.add(r.propertyId);
+                    }
                 });
             }
 
             const capturedCount = uniqueCaptured.size;
             const pct = totalUnits > 0 ? Math.round((capturedCount / totalUnits) * 100) : 0;
+
             document.getElementById('display-progress-pct').innerHTML = `${pct}<span class="text-lg opacity-50 ml-1">%</span>`;
             document.getElementById('display-counts').innerText = `${capturedCount} / ${totalUnits} Units`;
             document.getElementById('remaining-units').innerText = `${totalUnits - capturedCount} Units`;
             document.getElementById('progress-bar').style.width = `${pct}%`;
         };
 
-        // [Surgical]: Split Feed Rendering (Synced vs Outbox)
+        const calculateAmount = (curr, prev) => {
+            const consumption = Math.max(0, curr - prev);
+            if (consumption <= billingConfig.threshold) return billingConfig.minFee;
+            return billingConfig.minFee + ((consumption - billingConfig.threshold) * billingConfig.excessRate);
+        };
+
+        // [Surgical]: Integrated renderFeeds to handle Outbox vs Log
         const renderFeeds = (snapshot) => {
             const activityContainer = document.getElementById('readings-feed');
             const outboxContainer = document.getElementById('outbox-feed');
@@ -267,6 +343,7 @@
 
             snapshot.forEach(child => {
                 const data = child.val();
+                // Check if data is from local cache (unsynced)
                 const isLocal = child.metadata ? child.metadata.fromCache : false;
                 
                 if (isLocal) {
@@ -276,22 +353,22 @@
                 }
             });
 
-            // Outbox Handling
+            // Handle Outbox Display
             if (outboxItems.length > 0) {
                 outboxSection.classList.remove('hidden');
                 outboxCountEl.innerText = outboxItems.length;
                 outboxItems.reverse().forEach(r => {
-                    const div = createLogEntry(r, false);
-                    outboxContainer.appendChild(div);
+                    outboxContainer.appendChild(createLogEntry(r, false));
                 });
             } else {
                 outboxSection.classList.add('hidden');
             }
 
-            // Synced Activity Log (Max 5)
+            // Handle Activity Log (Synced only, Max 5)
             const latestSynced = syncedItems.reverse().slice(0, 5);
             if(latestSynced.length > 0 && latestSynced[0].locationAddress) {
-                document.getElementById('active-street').innerText = latestSynced[0].locationAddress.split(' ')[0] + ' St.';
+                const streetName = latestSynced[0].locationAddress.split(' ')[0];
+                document.getElementById('active-street').innerText = streetName + ' St.';
             }
             latestSynced.forEach(r => {
                 activityContainer.appendChild(createLogEntry(r, true));
@@ -323,69 +400,131 @@
             const btn = document.getElementById('final-submit-btn');
             btn.innerText = "..."; btn.disabled = true;
             try {
+                const readerName = sessionStorage.getItem('aqt_user_name');
+                const now = new Date();
+                
                 const readingData = {
                     propertyId: activeProperty.id,
-                    billingCycle: new Date().toISOString().slice(0, 7),
+                    ownerUid: activeProperty.ownerUid || null,
+                    billingCycle: now.toISOString().slice(0, 7),
                     readerId: auth.currentUser.uid,
-                    readerName: sessionStorage.getItem('aqt_user_name'),
+                    readerName: readerName,
                     reading: reading,
+                    prevReading: activeProperty.lastReading,
+                    consumption: reading - activeProperty.lastReading,
                     timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    status: 'pending',
                     locationAddress: `${activeProperty.street} B${activeProperty.block} L${activeProperty.lot}`,
-                    status: 'pending'
+                    appliedRates: { ...billingConfig },
+                    estimatedAmount: calculateAmount(reading, activeProperty.lastReading)
                 };
                 
-                // Set data to Firebase (handles offline internally via persistence)
                 await db.ref('readings').push(readingData);
                 await db.ref(`properties/${activeProperty.id}`).update({ lastReading: reading });
                 
-                toast("Telemetry logged", "success");
+                toast("Telemetry Captured", "success");
+                updateHUDStats();
                 closeReadingModal();
             } catch (e) { toast("Local save active", "warning"); closeReadingModal(); }
-            finally { btn.innerText = "Upload"; btn.disabled = false; }
+            finally { btn.innerText = "Yes, Upload"; btn.disabled = false; }
         };
 
-        // UI Logic (Standard)
+        window.identifyProperty = async () => {
+            const street = document.getElementById('input-street').value;
+            const block = document.getElementById('input-block').value;
+            const lotInput = document.getElementById('input-lot').value.trim().toLowerCase();
+
+            if(!street || !block || !lotInput) return toast("Complete location details", "info");
+
+            const snapshot = await db.ref('properties').once('value');
+            const properties = snapshot.val();
+            activeProperty = null;
+
+            for(let id in properties) {
+                const p = properties[id];
+                if(p.street === street && 
+                   p.block.toString() === block.toString() && 
+                   p.lot.toString().toLowerCase() === lotInput) {
+                    activeProperty = { id, ...p };
+                    break;
+                }
+            }
+
+            if(activeProperty) {
+                document.getElementById('modal-stage-locator').classList.add('hidden');
+                document.getElementById('modal-stage-reading').classList.remove('hidden');
+                document.getElementById('display-owner').innerText = activeProperty.ownerName || activeProperty.name;
+                
+                let lotDisplay = `B${activeProperty.block} L${activeProperty.lot}`;
+                if(activeProperty.additionalLots) lotDisplay += ` (+${activeProperty.additionalLots})`;
+                
+                document.getElementById('display-prop-id').innerText = lotDisplay;
+                document.getElementById('display-prev').innerText = `${activeProperty.lastReading} m³`;
+            } else { toast("Property not found", "error"); }
+        };
+
+        // Listeners & HUD Events
+        db.ref('readings').limitToLast(20).on('value', (snap) => {
+            updateHUDStats();
+            if(snap.exists()) renderFeeds(snap);
+        });
+
+        // Other Window Functions (Preserved)
         window.openReadingModal = () => { document.getElementById('readingModal').classList.remove('hidden'); resetModalState(); };
         window.closeReadingModal = () => document.getElementById('readingModal').classList.add('hidden');
         window.resetModalState = () => {
             document.getElementById('modal-stage-locator').classList.remove('hidden');
             document.getElementById('modal-stage-reading').classList.add('hidden');
             document.getElementById('modal-stage-confirm').classList.add('hidden');
+            document.getElementById('input-reading').value = '';
+        };
+        window.showConfirmation = () => {
+            const reading = parseFloat(document.getElementById('input-reading').value);
+            if(isNaN(reading) || reading <= activeProperty.lastReading) return toast("Reading must be higher than previous", "info");
+            document.getElementById('modal-stage-reading').classList.add('hidden');
+            document.getElementById('modal-stage-confirm').classList.remove('hidden');
+            document.getElementById('confirm-summary').innerHTML = `
+                <div class="flex justify-between"><span>Owner</span><span class="font-black text-right">${activeProperty.ownerName || activeProperty.name}</span></div>
+                <div class="flex justify-between"><span>Street</span><span class="font-black">${activeProperty.street}</span></div>
+                <div class="flex justify-between"><span>Block / Lot</span><span class="font-black">B${activeProperty.block} L${activeProperty.lot}</span></div>
+                <div class="border-t border-slate-300 dark:border-slate-700 mt-2 pt-2 flex justify-between text-sm">
+                    <span class="font-bold">Reading</span><span class="text-waterDark dark:text-water font-black">${reading.toFixed(1)} m³</span>
+                </div>
+            `;
+        };
+        window.backToReading = () => {
+            document.getElementById('modal-stage-confirm').classList.add('hidden');
+            document.getElementById('modal-stage-reading').classList.remove('hidden');
         };
 
-        window.identifyProperty = async () => {
-            const street = document.getElementById('input-street').value;
-            const block = document.getElementById('input-block').value;
-            const lot = document.getElementById('input-lot').value.trim().toLowerCase();
-            const snap = await db.ref('properties').once('value');
-            activeProperty = null;
-            if(snap.exists()){
-                for(let id in snap.val()){
-                    const p = snap.val()[id];
-                    if(p.street === street && p.block == block && p.lot.toLowerCase() == lot){
-                        activeProperty = { id, ...p }; break;
+        auth.onAuthStateChanged(async (user) => { 
+            if (!user) {
+                sessionStorage.clear();
+                window.location.replace('../index.html');
+                return;
+            } 
+            let userRole = sessionStorage.getItem('aqt_user_role');
+            if (!userRole) {
+                try {
+                    const snap = await db.ref(`users/${user.uid}`).once('value');
+                    const userData = snap.val();
+                    if (userData) {
+                        sessionStorage.setItem('aqt_user_name', userData.name);
+                        sessionStorage.setItem('aqt_user_role', userData.role);
+                        userRole = userData.role;
                     }
+                } catch (e) {
+                    auth.signOut().then(() => window.location.replace('../index.html'));
+                    return;
                 }
             }
-            if(activeProperty){
-                document.getElementById('modal-stage-locator').classList.add('hidden');
-                document.getElementById('modal-stage-reading').classList.remove('hidden');
-                document.getElementById('display-owner').innerText = activeProperty.ownerName;
-                document.getElementById('display-prop-id').innerText = `B${activeProperty.block} L${activeProperty.lot}`;
-                document.getElementById('display-prev').innerText = `${activeProperty.lastReading} m³`;
-            } else toast("Unit Not Found", "error");
-        };
-
-        // Listeners
-        db.ref('readings').limitToLast(20).on('value', (snap) => {
+            if (userRole !== 'reader') {
+                window.location.replace('../index.html?error=unauthorized');
+                return;
+            }
             updateHUDStats();
-            if(snap.exists()) renderFeeds(snap);
-        });
-
-        auth.onAuthStateChanged(user => {
-            if(!user) window.location.replace('../index.html');
-            updateHUDStats();
-            // fetchStreets() implementation omitted for focus, but remains in original logic
+            fetchConfig();
+            fetchStreets();
         });
     </script>
 </body>
