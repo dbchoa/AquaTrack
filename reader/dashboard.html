@@ -245,7 +245,7 @@
         const getOutbox = () => JSON.parse(localStorage.getItem('aqt_outbox') || '[]');
         const setOutbox = (data) => localStorage.setItem('aqt_outbox', JSON.stringify(data));
 
-        // --- FIXED: Aggressive State-Verification Cleanup ---
+        // --- Aggressive Sync Cleanup: Aligned to Actual DB Node Names ---
         const processSyncCleanup = async () => {
             let outbox = getOutbox();
             if (outbox.length === 0) return;
@@ -254,7 +254,7 @@
             if (!snapshot.exists()) return;
 
             const remoteData = snapshot.val();
-            // SURGICAL FIX: Only keep items that do NOT exist in the remote DB keys
+            // Verify by readingId to remove ghost entries
             const remainingOutbox = outbox.filter(localItem => !remoteData[localItem.id]);
 
             if (remainingOutbox.length !== outbox.length) {
@@ -305,7 +305,8 @@
         });
 
         const primePropertyCache = () => {
-            db.ref('homeowners').on('value', (snap) => {
+            // FIXED: Pointed to 'properties' node per Ground Truth screenshot
+            db.ref('properties').on('value', (snap) => {
                 if(snap.exists()) {
                     localPropertiesCache = snap.val();
                     updateHUDStats();
@@ -322,7 +323,10 @@
             if (rSnap.exists()) {
                 const currentCycle = new Date().toISOString().slice(0, 7);
                 Object.values(rSnap.val()).forEach(r => {
-                    if (r.billingCycle === currentCycle) uniqueCaptured.add(r.accountId);
+                    // Match against accountId to align with Spec v1.2
+                    if (r.billingCycle === currentCycle && r.accountId) {
+                        uniqueCaptured.add(r.accountId);
+                    }
                 });
             }
 
@@ -330,13 +334,19 @@
             const remaining = Math.max(0, totalUnits - capturedCount);
             const pct = totalUnits > 0 ? Math.min(100, Math.round((capturedCount / totalUnits) * 100)) : 0;
 
-            document.getElementById('display-progress-pct').innerHTML = `${pct}<span class="text-lg opacity-50 ml-1">%</span>`;
-            document.getElementById('display-counts').innerText = `${capturedCount} / ${totalUnits} Units`;
-            document.getElementById('remaining-units').innerText = `${remaining} Units`;
-            document.getElementById('progress-bar').style.width = `${pct}%`;
+            const pctDisplay = document.getElementById('display-progress-pct');
+            if(pctDisplay) pctDisplay.innerHTML = `${pct}<span class="text-lg opacity-50 ml-1">%</span>`;
+            
+            const countDisplay = document.getElementById('display-counts');
+            if(countDisplay) countDisplay.innerText = `${capturedCount} / ${totalUnits} Units`;
+            
+            const remainingDisplay = document.getElementById('remaining-units');
+            if(remainingDisplay) remainingDisplay.innerText = `${remaining} Units`;
+            
+            const progressBar = document.getElementById('progress-bar');
+            if(progressBar) progressBar.style.width = `${pct}%`;
         };
 
-        // --- FIXED: Simplified Feed Logic to prevent ghosting ---
         const renderFeeds = (snapshot) => {
             const activityContainer = document.getElementById('readings-feed');
             activityContainer.innerHTML = '';
@@ -411,21 +421,18 @@
                 appliedRates: { ...billingConfig }
             };
 
-            // 1. Save to Outbox first
             let outbox = getOutbox();
             outbox.push({ id: readingId, ...readingData });
             setOutbox(outbox);
             renderOutboxOnly();
 
             try {
-                // 2. Attempt upload
                 await newRef.set(readingData);
-                await db.ref(`homeowners/${activeProperty.accountId}`).update({ lastReading: reading });
+                // FIXED: Node path updated to properties
+                await db.ref(`properties/${activeProperty.accountId}`).update({ lastReading: reading });
 
-                // 3. SURGICAL FIX: Fast-track removal on success
                 let updatedOutbox = getOutbox().filter(item => item.id !== readingId);
                 setOutbox(updatedOutbox);
-                
                 toast(`Synced: ${activeProperty.street}`, "success");
             } catch (e) {
                 console.error("Sync failed:", e);
@@ -441,16 +448,17 @@
         window.identifyProperty = () => {
             const street = document.getElementById('input-street').value;
             const block = document.getElementById('input-block').value;
-            const lotInput = document.getElementById('input-lot').value.trim().toLowerCase();
+            const lotInput = document.getElementById('input-lot').value.trim();
 
             if(!street || !block || !lotInput) return toast("Complete location details", "info");
             if(!localPropertiesCache) return toast("Initialising cache...", "warning");
 
             activeProperty = null;
-            for(let id in localPropertiesCache) {
-                const p = localPropertiesCache[id];
-                if(p.street === street && p.block.toString() === block.toString() && p.lot.toString().toLowerCase() === lotInput) {
-                    activeProperty = { accountId: id, ...p };
+            for(let key in localPropertiesCache) {
+                const p = localPropertiesCache[key];
+                // Match Logic aligned to Ground Truth Screenshot fields
+                if(p.street === street && p.block.toString() === block.toString() && p.lot.toString().toLowerCase() === lotInput.toLowerCase()) {
+                    activeProperty = { accountId: key, ...p };
                     break;
                 }
             }
@@ -458,9 +466,9 @@
             if(activeProperty) {
                 document.getElementById('modal-stage-locator').classList.add('hidden');
                 document.getElementById('modal-stage-reading').classList.remove('hidden');
-                document.getElementById('display-owner').innerText = activeProperty.ownerName || activeProperty.name;
-                document.getElementById('display-prop-id').innerText = `B${activeProperty.block} L${activeProperty.lot}`;
-                document.getElementById('display-prev').innerText = `${activeProperty.lastReading} m³`;
+                document.getElementById('display-owner').innerText = activeProperty.ownerName || "Unknown Owner";
+                document.getElementById('display-prop-id').innerText = activeProperty.accountId;
+                document.getElementById('display-prev').innerText = `${activeProperty.lastReading || 0} m³`;
             } else toast("Property not found", "error");
         };
 
@@ -473,7 +481,7 @@
 
         window.showConfirmation = () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
-            if(isNaN(reading) || reading <= activeProperty.lastReading) return toast("Reading must be higher", "info");
+            if(isNaN(reading) || reading <= (activeProperty?.lastReading || 0)) return toast("Reading must be higher", "info");
             document.getElementById('modal-stage-reading').classList.add('hidden');
             document.getElementById('modal-stage-confirm').classList.remove('hidden');
             document.getElementById('confirm-summary').innerHTML = `
