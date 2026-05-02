@@ -312,33 +312,47 @@
             
             let syncedItems = [];
             let outboxItems = [];
-
+        
             snapshot.forEach(child => {
                 const data = child.val();
-                // [Surgical Check]: metadata.fromCache cross-referenced with connection status
-                const isLocal = child.metadata ? child.metadata.fromCache : isDeviceOffline;
                 
-                if (isLocal) {
+                /** 
+                 * [RTDB Surgical Identifier]:
+                 * 1. isDeviceOffline: If the global listener says we're disconnected, 
+                 *    new local writes are logically pending.
+                 * 2. typeof data.timestamp !== 'number': In RTDB, ServerValue.TIMESTAMP 
+                 *    is an Object/Estimate while offline. It ONLY becomes a Number 
+                 *    once the Google Server processes it.
+                 */
+                const isPending = isDeviceOffline || (typeof data.timestamp !== 'number');
+                
+                if (isPending) {
                     outboxItems.push(data);
                 } else {
                     syncedItems.push(data);
                 }
             });
-
+        
+            // 1. TERMINAL OUTBOX: Show items waiting for sync
             if (outboxItems.length > 0) {
                 outboxSection.classList.remove('hidden');
                 outboxCountEl.innerText = outboxItems.length;
+                // Reverse to show the most recent capture at the top of the outbox
                 outboxItems.reverse().forEach(r => outboxContainer.appendChild(createLogEntry(r, false)));
             } else {
                 outboxSection.classList.add('hidden');
             }
-
-            // Sync Log strictly max 5 items
+        
+            // 2. ACTIVITY LOG: Show strictly server-confirmed data
             const latestSynced = syncedItems.reverse().slice(0, 5);
+            
             if(latestSynced.length > 0 && latestSynced[0].locationAddress) {
                 document.getElementById('active-street').innerText = latestSynced[0].locationAddress.split(' ')[0] + ' St.';
             }
-            latestSynced.forEach(r => activityContainer.appendChild(createLogEntry(r, true)));
+        
+            latestSynced.forEach(r => {
+                activityContainer.appendChild(createLogEntry(r, true));
+            });
         };
 
         const createLogEntry = (r, isSynced) => {
