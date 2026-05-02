@@ -107,8 +107,6 @@
             </div>
         </div>
 
-        
-
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="glass-card p-6 rounded-xl shadow-sm border-water/40 dark:border-water/40">
                 <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Current Street</p>
@@ -132,7 +130,7 @@
             </div>
         </div>
 
-        <!-- Terminal Outbox -->
+        <!-- Terminal Outbox (Strategically relocated above Activity Log) -->
         <div id="outbox-section" class="hidden mb-10">
             <div class="flex items-center justify-between mb-4 px-2">
                 <div class="h-[1px] flex-1 bg-slate-300 dark:bg-slate-800 mr-6 opacity-40"></div>
@@ -247,12 +245,11 @@
         let localPropertiesCache = null;
         let isDeviceOffline = false;
 
-        // --- [Surgical]: Offline Outbox Tracker Logic ---
+        // --- [Surgical]: Offline Outbox & Traceability Logic ---
 
         const getOutbox = () => JSON.parse(localStorage.getItem('aqt_outbox') || '[]');
         const setOutbox = (data) => localStorage.setItem('aqt_outbox', JSON.stringify(data));
 
-        // Clean up: Checks if outbox items now exist physically on the server
         const processSyncCleanup = async () => {
             let outbox = getOutbox();
             if (outbox.length === 0) return;
@@ -260,7 +257,6 @@
             let changed = false;
             for (let i = outbox.length - 1; i >= 0; i--) {
                 const item = outbox[i];
-                // Physically check the server for this specific reading ID
                 const snap = await db.ref(`readings/${item.id}`).once('value');
                 if (snap.exists()) {
                     outbox.splice(i, 1);
@@ -291,20 +287,29 @@
             }
         };
 
-        // --- [Standard]: Event Listeners & Functions ---
+        // --- [Standard]: Listeners & Database Functions ---
 
         db.ref(".info/connected").on("value", (snap) => {
             isDeviceOffline = (snap.val() === false);
             const fab = document.getElementById('fab-container');
             const statusText = document.getElementById('connection-status');
+            const ping = document.getElementById('fab-ping');
 
             if (!isDeviceOffline) {
                 fab.classList.remove('is-offline');
-                if(statusText) statusText.innerText = "● Online";
+                if(statusText) {
+                    statusText.innerText = "● Online";
+                    statusText.className = "text-[10px] text-emerald-500 font-bold uppercase tracking-[0.4em] mt-2 opacity-60";
+                }
+                if(ping) ping.className = "absolute inset-0 rounded-full bg-waterDark animate-ping opacity-20 pointer-events-none";
                 processSyncCleanup();
             } else {
                 fab.classList.add('is-offline');
-                if(statusText) statusText.innerText = "● Offline (Cached)";
+                if(statusText) {
+                    statusText.innerText = "● Offline (Cached)";
+                    statusText.className = "text-[10px] text-warning font-bold uppercase tracking-[0.4em] mt-2 opacity-60";
+                }
+                if(ping) ping.className = "absolute inset-0 rounded-full bg-warning animate-ping opacity-20 pointer-events-none";
             }
         });
 
@@ -349,7 +354,6 @@
 
             let syncedItems = [];
             snapshot.forEach(child => {
-                // If it is currently in our manual outbox, don't show it here yet
                 if (!outboxIds.has(child.key)) {
                     syncedItems.push(child.val());
                 }
@@ -361,7 +365,6 @@
             }
             latestSynced.forEach(r => activityContainer.appendChild(createLogEntry(r, true)));
             
-            // Re-render outbox to ensure latest state
             renderOutboxOnly();
         };
 
@@ -369,21 +372,24 @@
             const div = document.createElement('div');
             div.className = `console-entry ${isSynced ? 'border-water' : 'outbox-entry animate-pulse'}`;
             
-            // [Surgical Indicator]: 
-            // We only attempt to parse the date if the server has turned the 
-            // placeholder object into a real millisecond number.
-            const hasFinalizedTime = (typeof r.timestamp === 'number');
-            const timeDisplay = hasFinalizedTime 
+            const hasValidTime = (typeof r.timestamp === 'number');
+            const timeDisplay = hasValidTime 
                 ? new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
                 : ''; 
-        
+
+            // [Surgical Traceability]: Detect origin mode for dispute resolution
+            const originBadge = r.fromOffline === true 
+                ? '<span class="text-[7px] bg-slate-200 dark:bg-slate-800 px-1 rounded text-slate-500 font-black">OFFLINE-ORIGIN</span>' 
+                : '';
+
             div.innerHTML = `
                 <div class="flex flex-col">
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] font-black uppercase text-slate-900 dark:text-white">${r.locationAddress}</span>
+                        ${originBadge}
                         ${!isSynced ? '<i class="bi bi-cloud-arrow-up text-amber-500 text-[10px]"></i>' : ''}
                     </div>
-                    ${hasFinalizedTime ? `<span class="text-[9px] text-slate-500 font-bold">${timeDisplay}</span>` : ''}
+                    ${hasValidTime ? `<span class="text-[9px] text-slate-500 font-bold">${timeDisplay}</span>` : ''}
                 </div>
                 <div class="text-right">
                     <div class="font-mono text-sm font-black ${isSynced ? 'text-waterDark dark:text-water' : 'text-amber-600'}">
@@ -402,7 +408,6 @@
             const btn = document.getElementById('final-submit-btn');
             btn.innerText = "..."; btn.disabled = true;
             
-            // 1. Manually generate ID first for tracking
             const newRef = db.ref('readings').push();
             const readingId = newRef.key;
 
@@ -414,19 +419,19 @@
                 reading: reading,
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 locationAddress: `${activeProperty.street} B${activeProperty.block} L${activeProperty.lot}`,
-                status: 'pending'
+                status: 'pending',
+                // [Surgical Audit Trail]: Record origin state
+                fromOffline: isDeviceOffline 
             };
 
-            // 2. Add to Local Tracker
             let outbox = getOutbox();
             outbox.push({ id: readingId, ...readingData });
             setOutbox(outbox);
 
-            // 3. Write to Database (Persistent cache handles the heavy lifting)
             newRef.set(readingData);
             db.ref(`properties/${activeProperty.id}`).update({ lastReading: reading });
             
-            toast("Telemetery Captued to Outbox", "warning");
+            toast(`Captured (${isDeviceOffline ? 'Offline' : 'Online'})`, "warning");
             closeReadingModal();
             updateHUDStats();
             renderOutboxOnly();
