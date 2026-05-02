@@ -413,15 +413,21 @@
 
             const readingData = {
                 propertyId: activeProperty.id,
+                // [Surgical Addition]: Restoring owner link
+                ownerUid: activeProperty.ownerUid || null,
                 billingCycle: new Date().toISOString().slice(0, 7),
                 readerId: auth.currentUser.uid,
                 readerName: sessionStorage.getItem('aqt_user_name'),
                 reading: reading,
+                // [Surgical Addition]: Baseline for historical integrity
+                prevReading: activeProperty.lastReading || 0,
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 locationAddress: `${activeProperty.street} B${activeProperty.block} L${activeProperty.lot}`,
                 status: 'pending',
                 // [Surgical Audit Trail]: Record origin state
-                fromOffline: isDeviceOffline 
+                fromOffline: isDeviceOffline,
+                // [Surgical Addition]: Lock the rates at the time of reading
+                appliedRates: { ...billingConfig }
             };
 
             let outbox = getOutbox();
