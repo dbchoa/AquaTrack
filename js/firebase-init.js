@@ -1,6 +1,5 @@
 /**
  * AquaTrack Firebase Configuration & Initialization
- * This file establishes the connection to Auth and the Realtime Database.
  */
 
 const firebaseConfig = {
@@ -16,22 +15,21 @@ const firebaseConfig = {
 // 1. Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-// 2. [Surgical]: Enable Offline Persistence
-// This saves data to the physical disk, allowing the app to survive reboots/refreshes while offline.
-firebase.database().enablePersistence()
+// 2. [Surgical Fix]: Realtime Database Persistence
+// In RTDB (v9 compat), the method is setPersistenceEnabled(true)
+firebase.database().setPersistenceEnabled(true)
+  .then(() => {
+    console.log("%c[AQUATRACK] Offline Persistence Active", "color: #10b981; font-weight: bold;");
+  })
   .catch((err) => {
-    if (err.code == 'failed-precondition') {
-      console.warn("[AQUATRACK] Persistence failed: Multiple tabs open.");
-    } else if (err.code == 'unimplemented') {
-      console.warn("[AQUATRACK] Persistence failed: Browser not supported.");
-    }
+    console.warn("[AQUATRACK] Persistence Error:", err.message);
   });
 
 // 3. Create easy-to-use references
 export const auth = firebase.auth();
 export const db = firebase.database();
 
-// 4. Optimization: Set up a persistence check
+// 4. Connection check utility
 export const checkConnection = (callback) => {
   const connectedRef = db.ref(".info/connected");
   connectedRef.on("value", (snap) => {
