@@ -115,7 +115,7 @@
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                     </span>
-                    Terminal Outbox
+                    Waiting for Sync
                 </h2>
                 <span id="outbox-count" class="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full">0</span>
             </div>
@@ -241,6 +241,9 @@
         let activeProperty = null;
         let billingConfig = { threshold: 15, minFee: 200, excessRate: 15 };
         let localPropertiesCache = null;
+        
+        // [Surgical]: Global state gatekeepers
+        let isDeviceOffline = false;
 
         const primePropertyCache = () => {
             db.ref('properties').on('value', (snap) => {
@@ -252,12 +255,12 @@
         };
 
         db.ref(".info/connected").on("value", (snap) => {
-            const isOnline = snap.val() === true;
+            isDeviceOffline = (snap.val() === false);
             const fab = document.getElementById('fab-container');
             const statusText = document.getElementById('connection-status');
             const ping = document.getElementById('fab-ping');
 
-            if (isOnline) {
+            if (!isDeviceOffline) {
                 fab.classList.remove('is-offline');
                 if(statusText) {
                     statusText.innerText = "● Online";
@@ -274,34 +277,10 @@
             }
         });
 
-        const fetchStreets = async () => {
-            try {
-                const snap = await db.ref('config/streets').once('value');
-                const select = document.getElementById('input-street');
-                if (snap.exists() && select) {
-                    select.innerHTML = '<option value="" disabled selected>Select Street...</option>';
-                    Object.values(snap.val()).forEach(st => {
-                        const opt = document.createElement('option');
-                        opt.value = st.name; opt.textContent = st.fullName;
-                        select.appendChild(opt);
-                    });
-                }
-            } catch (e) { toast("Street sync failed", "error"); }
-        };
-
-        const fetchConfig = async () => {
-            const snap = await db.ref('config/billing').once('value');
-            if (snap.exists()) {
-                billingConfig = snap.val();
-                const el = document.getElementById('rate-summary-text');
-                if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³ + ₱${billingConfig.excessRate}/m³ excess`;
-            }
-        };
-
         const updateHUDStats = async () => {
-            const properties = localPropertiesCache;
+            if(!localPropertiesCache) return;
             const rSnap = await db.ref('readings').once('value');
-            const totalUnits = properties ? Object.keys(properties).length : 0;
+            const totalUnits = Object.keys(localPropertiesCache).length;
             const uniqueCaptured = new Set();
 
             if (rSnap.exists()) {
@@ -312,14 +291,16 @@
             }
 
             const capturedCount = uniqueCaptured.size;
-            const pct = totalUnits > 0 ? Math.round((capturedCount / totalUnits) * 100) : 0;
+            // [Surgical Fix]: Math.max(0) ensures we never show -1 units
+            const remaining = Math.max(0, totalUnits - capturedCount);
+            const pct = totalUnits > 0 ? Math.min(100, Math.round((capturedCount / totalUnits) * 100)) : 0;
+
             document.getElementById('display-progress-pct').innerHTML = `${pct}<span class="text-lg opacity-50 ml-1">%</span>`;
             document.getElementById('display-counts').innerText = `${capturedCount} / ${totalUnits} Units`;
-            document.getElementById('remaining-units').innerText = `${totalUnits - capturedCount} Units`;
+            document.getElementById('remaining-units').innerText = `${remaining} Units`;
             document.getElementById('progress-bar').style.width = `${pct}%`;
         };
 
-        // [Surgical]: Fixed false labeling and feed split
         const renderFeeds = (snapshot) => {
             const activityContainer = document.getElementById('readings-feed');
             const outboxContainer = document.getElementById('outbox-feed');
@@ -334,19 +315,25 @@
 
             snapshot.forEach(child => {
                 const data = child.val();
-                // [Surgical Check]: Realtime check if data is cloud-confirmed
-                // Using child.getMetadata() logic for Compat
-                const isLocal = child.metadata ? child.metadata.fromCache : false;
+                // [Surgical Check]: metadata.fromCache cross-referenced with connection status
+                const isLocal = child.metadata ? child.metadata.fromCache : isDeviceOffline;
                 
-                isLocal ? outboxItems.push(data) : syncedItems.push(data);
+                if (isLocal) {
+                    outboxItems.push(data);
+                } else {
+                    syncedItems.push(data);
+                }
             });
 
             if (outboxItems.length > 0) {
                 outboxSection.classList.remove('hidden');
                 outboxCountEl.innerText = outboxItems.length;
                 outboxItems.reverse().forEach(r => outboxContainer.appendChild(createLogEntry(r, false)));
-            } else outboxSection.classList.add('hidden');
+            } else {
+                outboxSection.classList.add('hidden');
+            }
 
+            // Sync Log strictly max 5 items
             const latestSynced = syncedItems.reverse().slice(0, 5);
             if(latestSynced.length > 0 && latestSynced[0].locationAddress) {
                 document.getElementById('active-street').innerText = latestSynced[0].locationAddress.split(' ')[0] + ' St.';
@@ -359,7 +346,10 @@
             div.className = `console-entry ${isSynced ? 'border-water' : 'outbox-entry animate-pulse'}`;
             div.innerHTML = `
                 <div class="flex flex-col">
-                    <span class="text-[10px] font-black uppercase text-slate-900 dark:text-white">${r.locationAddress}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase text-slate-900 dark:text-white">${r.locationAddress}</span>
+                        ${!isSynced ? '<i class="bi bi-cloud-arrow-up text-amber-500 text-[10px]"></i>' : ''}
+                    </div>
                     <span class="text-[9px] text-slate-500 font-bold">${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                 </div>
                 <div class="text-right">
@@ -411,32 +401,32 @@
             document.getElementById('display-cost').innerText = formatCurrency(amount);
         });
 
-        // [Surgical Fix]: Removed 'await' from transmission to prevent offline hang
-        window.submitReading = async () => {
+        // [Surgical Fix]: Non-await transmission for instant modal closure
+        window.submitReading = () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
             const btn = document.getElementById('final-submit-btn');
             btn.innerText = "..."; btn.disabled = true;
-            try {
-                const readingData = {
-                    propertyId: activeProperty.id,
-                    billingCycle: new Date().toISOString().slice(0, 7),
-                    readerId: auth.currentUser.uid,
-                    readerName: sessionStorage.getItem('aqt_user_name'),
-                    reading: reading,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    locationAddress: `${activeProperty.street} B${activeProperty.block} L${activeProperty.lot}`,
-                    status: 'pending'
-                };
-                
-                // Set data instantly to local Firebase cache (survives offline)
-                db.ref('readings').push(readingData);
-                db.ref(`properties/${activeProperty.id}`).update({ lastReading: reading });
-                
-                toast("Logged to Terminal Outbox", "warning");
-                closeReadingModal();
-                updateHUDStats();
-            } catch (e) { toast("Local save failed", "error"); closeReadingModal(); }
-            finally { btn.innerText = "Yes, Upload"; btn.disabled = false; }
+            
+            const readingData = {
+                propertyId: activeProperty.id,
+                billingCycle: new Date().toISOString().slice(0, 7),
+                readerId: auth.currentUser.uid,
+                readerName: sessionStorage.getItem('aqt_user_name'),
+                reading: reading,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                locationAddress: `${activeProperty.street} B${activeProperty.block} L${activeProperty.lot}`,
+                status: 'pending'
+            };
+            
+            // Fire and forget (Firebase manages local persistence)
+            db.ref('readings').push(readingData);
+            db.ref(`properties/${activeProperty.id}`).update({ lastReading: reading });
+            
+            toast("Captured to Terminal Outbox", "warning");
+            closeReadingModal();
+            updateHUDStats();
+            
+            setTimeout(() => { btn.innerText = "Yes, Upload"; btn.disabled = false; }, 1000);
         };
 
         window.showConfirmation = () => {
@@ -474,7 +464,24 @@
             primePropertyCache();
             const userRole = sessionStorage.getItem('aqt_user_role');
             if (userRole !== 'reader') window.location.replace('../index.html?error=unauthorized');
-            fetchConfig(); fetchStreets();
+            
+            const snap = await db.ref('config/billing').once('value');
+            if (snap.exists()) {
+                billingConfig = snap.val();
+                const el = document.getElementById('rate-summary-text');
+                if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³ + ₱${billingConfig.excessRate}/m³ excess`;
+            }
+            
+            const streetSnap = await db.ref('config/streets').once('value');
+            const select = document.getElementById('input-street');
+            if (streetSnap.exists() && select) {
+                select.innerHTML = '<option value="" disabled selected>Select Street...</option>';
+                Object.values(streetSnap.val()).forEach(st => {
+                    const opt = document.createElement('option');
+                    opt.value = st.name; opt.textContent = st.fullName;
+                    select.appendChild(opt);
+                });
+            }
         });
     </script>
 </body>
