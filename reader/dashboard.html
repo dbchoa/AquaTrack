@@ -313,19 +313,26 @@
             let syncedItems = [];
             let outboxItems = [];
         
+            console.group("%c[AQUATRACK] Telemetry Sync Scan", "color: #4facfe; font-weight: bold;");
+            
             snapshot.forEach(child => {
                 const data = child.val();
+                const key = child.key;
+        
+                // [Senior Engineer Debugger]: Let's see the raw truth
+                const tsType = typeof data.timestamp;
+                const tsValue = data.timestamp;
                 
-                /** 
-                 * [RTDB Surgical Identifier]:
-                 * 1. isDeviceOffline: If the global listener says we're disconnected, 
-                 *    new local writes are logically pending.
-                 * 2. typeof data.timestamp !== 'number': In RTDB, ServerValue.TIMESTAMP 
-                 *    is an Object/Estimate while offline. It ONLY becomes a Number 
-                 *    once the Google Server processes it.
+                /**
+                 * LOGIC REFINEMENT:
+                 * History should ONLY stay in Synced if the timestamp is a finalized Number.
+                 * New offline writes in RTDB appear as Objects (Estimates) or very large 
+                 * temporary integers depending on the internal cache state.
                  */
-                const isPending = isDeviceOffline || (typeof data.timestamp !== 'number');
-                
+                const isPending = (tsType !== 'number');
+        
+                console.log(`Unit: ${data.locationAddress} | Key: ${key} | TS_Type: ${tsType} | Pending: ${isPending}`);
+        
                 if (isPending) {
                     outboxItems.push(data);
                 } else {
@@ -333,26 +340,23 @@
                 }
             });
         
-            // 1. TERMINAL OUTBOX: Show items waiting for sync
+            console.groupEnd();
+        
+            // 1. TERMINAL OUTBOX (Strictly Unfinalized)
             if (outboxItems.length > 0) {
                 outboxSection.classList.remove('hidden');
                 outboxCountEl.innerText = outboxItems.length;
-                // Reverse to show the most recent capture at the top of the outbox
                 outboxItems.reverse().forEach(r => outboxContainer.appendChild(createLogEntry(r, false)));
             } else {
                 outboxSection.classList.add('hidden');
             }
         
-            // 2. ACTIVITY LOG: Show strictly server-confirmed data
+            // 2. ACTIVITY LOG (Strictly Server-Finalized Numbers)
             const latestSynced = syncedItems.reverse().slice(0, 5);
-            
             if(latestSynced.length > 0 && latestSynced[0].locationAddress) {
                 document.getElementById('active-street').innerText = latestSynced[0].locationAddress.split(' ')[0] + ' St.';
             }
-        
-            latestSynced.forEach(r => {
-                activityContainer.appendChild(createLogEntry(r, true));
-            });
+            latestSynced.forEach(r => activityContainer.appendChild(createLogEntry(r, true)));
         };
 
         const createLogEntry = (r, isSynced) => {
