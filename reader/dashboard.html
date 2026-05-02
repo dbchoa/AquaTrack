@@ -245,22 +245,16 @@
         const getOutbox = () => JSON.parse(localStorage.getItem('aqt_outbox') || '[]');
         const setOutbox = (data) => localStorage.setItem('aqt_outbox', JSON.stringify(data));
 
-        // --- ENHANCED: ID-Specific Cleanup Verification ---
         const processSyncCleanup = async () => {
             let outbox = getOutbox();
             if (outbox.length === 0) return;
 
             let changed = false;
-            // Iterate and verify each local record against server truth
             for (const item of outbox) {
-                try {
-                    const snap = await db.ref(`readings/${item.id}`).once('value');
-                    if (snap.exists()) {
-                        outbox = outbox.filter(o => o.id !== item.id);
-                        changed = true;
-                    }
-                } catch (e) {
-                    console.log("Cleanup verification skipped (network)");
+                const snap = await db.ref(`readings/${item.id}`).once('value');
+                if (snap.exists()) {
+                    outbox = outbox.filter(o => o.id !== item.id);
+                    changed = true;
                 }
             }
 
@@ -294,7 +288,7 @@
             const ping = document.getElementById('fab-ping');
 
             if (!isDeviceOffline) {
-                fab?.classList.remove('is-offline');
+                if(fab) fab.classList.remove('is-offline');
                 if(statusText) {
                     statusText.innerText = "● Online";
                     statusText.className = "text-[10px] text-emerald-500 font-bold uppercase tracking-[0.4em] mt-2 opacity-60";
@@ -302,7 +296,7 @@
                 if(ping) ping.className = "absolute inset-0 rounded-full bg-waterDark animate-ping opacity-20 pointer-events-none";
                 processSyncCleanup();
             } else {
-                fab?.classList.add('is-offline');
+                if(fab) fab.classList.add('is-offline');
                 if(statusText) {
                     statusText.innerText = "● Offline (Cached)";
                     statusText.className = "text-[10px] text-warning font-bold uppercase tracking-[0.4em] mt-2 opacity-60";
@@ -310,6 +304,14 @@
                 if(ping) ping.className = "absolute inset-0 rounded-full bg-warning animate-ping opacity-20 pointer-events-none";
             }
         });
+
+        // --- SURGICAL ADDITION: Heartbeat Sync ---
+        setInterval(() => {
+            if (!isDeviceOffline) {
+                processSyncCleanup();
+                updateHUDStats();
+            }
+        }, 30000);
 
         const primePropertyCache = () => {
             db.ref('properties').on('value', (snap) => {
@@ -329,8 +331,7 @@
             if (rSnap.exists()) {
                 const currentCycle = new Date().toISOString().slice(0, 7);
                 Object.values(rSnap.val()).forEach(r => {
-                    // Verifying propertyId based on v1.2 Spec pointer
-                    if (r.billingCycle === currentCycle && r.propertyId) uniqueCaptured.add(r.propertyId);
+                    if (r.billingCycle === currentCycle && r.accountId) uniqueCaptured.add(r.accountId);
                 });
             }
 
@@ -371,14 +372,8 @@
         const createLogEntry = (r, isSynced) => {
             const div = document.createElement('div');
             div.className = `console-entry ${isSynced ? 'border-water' : 'outbox-entry animate-pulse'}`;
-            
-            const timeDisplay = (typeof r.timestamp === 'number') 
-                ? new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
-                : 'Pending';
-
-            const originBadge = r.fromOffline === true 
-                ? '<span class="text-[7px] bg-slate-200 dark:bg-slate-800 px-1 rounded text-slate-500 font-black">OFFLINE-ORIGIN</span>' 
-                : '';
+            const timeDisplay = (typeof r.timestamp === 'number') ? new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Pending';
+            const originBadge = r.fromOffline === true ? '<span class="text-[7px] bg-slate-200 dark:bg-slate-800 px-1 rounded text-slate-500 font-black">OFFLINE-ORIGIN</span>' : '';
 
             div.innerHTML = `
                 <div class="flex flex-col">
@@ -400,7 +395,7 @@
             return div;
         };
 
-        // --- NON-BLOCKING SUBMISSION: Fixes Modal Freeze and Ghosting ---
+        // --- NON-BLOCKING SUBMISSION ---
         window.submitReading = () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
             const btn = document.getElementById('final-submit-btn');
@@ -410,9 +405,8 @@
             const readingId = newRef.key;
 
             const readingData = {
-                id: readingId, // Explicit matching key
-                propertyId: activeProperty.id,
-                ownerUid: activeProperty.ownerUid || null,
+                id: readingId,
+                accountId: activeProperty.accountId || activeProperty.id,
                 billingCycle: new Date().toISOString().slice(0, 7),
                 readerId: auth.currentUser.uid,
                 readerName: sessionStorage.getItem('aqt_user_name'),
@@ -425,19 +419,16 @@
                 appliedRates: { ...billingConfig }
             };
 
-            // 1. Immediate persistence
             let outbox = getOutbox();
             outbox.push(readingData);
             setOutbox(outbox);
             renderOutboxOnly();
 
-            // 2. Fire and Forget upload
             newRef.set(readingData).then(() => {
-                // Remove specific ID from local outbox upon confirmed receipt
                 let current = getOutbox().filter(item => item.id !== readingId);
                 setOutbox(current);
                 renderOutboxOnly();
-            }).catch(e => console.log("Standard offline deferral"));
+            });
 
             db.ref(`properties/${activeProperty.id}`).update({ lastReading: reading });
             
@@ -460,7 +451,7 @@
             for(let id in localPropertiesCache) {
                 const p = localPropertiesCache[id];
                 if(p.street === street && p.block.toString() === block.toString() && p.lot.toString().toLowerCase() === lotInput) {
-                    activeProperty = { id, ...p };
+                    activeProperty = { id, ...p, accountId: id };
                     break;
                 }
             }
@@ -469,8 +460,8 @@
                 document.getElementById('modal-stage-locator').classList.add('hidden');
                 document.getElementById('modal-stage-reading').classList.remove('hidden');
                 document.getElementById('display-owner').innerText = activeProperty.ownerName || activeProperty.name;
-                document.getElementById('display-prop-id').innerText = `B${activeProperty.block} L${activeProperty.lot}`;
-                document.getElementById('display-prev').innerText = `${activeProperty.lastReading} m³`;
+                document.getElementById('display-prop-id').innerText = activeProperty.accountId;
+                document.getElementById('display-prev').innerText = `${activeProperty.lastReading || 0} m³`;
             } else toast("Unit not found", "error");
         };
 
@@ -483,7 +474,7 @@
 
         window.showConfirmation = () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
-            if(isNaN(reading) || reading <= activeProperty.lastReading) return toast("Check value", "info");
+            if(isNaN(reading) || reading <= (activeProperty?.lastReading || 0)) return toast("Check value", "info");
             document.getElementById('modal-stage-reading').classList.add('hidden');
             document.getElementById('modal-stage-confirm').classList.remove('hidden');
             document.getElementById('confirm-summary').innerHTML = `
@@ -506,12 +497,11 @@
             document.getElementById('modal-stage-reading').classList.remove('hidden');
         };
 
-        db.ref('readings').limitToLast(10).on('value', (snap) => {
+        db.ref('readings').limitToLast(5).on('value', (snap) => {
             updateHUDStats();
             if(snap.exists()) renderFeeds(snap);
         });
 
-        
         auth.onAuthStateChanged(async (user) => { 
             if (!user) return window.location.replace('../index.html');
             primePropertyCache();
@@ -519,7 +509,7 @@
             const snap = await db.ref('config/billing').once('value');
             if (snap.exists()) billingConfig = snap.val();
             const el = document.getElementById('rate-summary-text');
-            if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³ + ₱${billingConfig.excessRate}/m³ excess`;
+            if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³`;
             
             const streetSnap = await db.ref('config/streets').once('value');
             const select = document.getElementById('input-street');
