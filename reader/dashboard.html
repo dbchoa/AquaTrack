@@ -509,7 +509,7 @@
             const snap = await db.ref('config/billing').once('value');
             if (snap.exists()) billingConfig = snap.val();
             const el = document.getElementById('rate-summary-text');
-            if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³`;
+            if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³ + ₱${billingConfig.excessRate}/m³ excess`;
             
             const streetSnap = await db.ref('config/streets').once('value');
             const select = document.getElementById('input-street');
