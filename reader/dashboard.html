@@ -107,7 +107,7 @@
             </div>
         </div>
 
-        <!-- [Surgical]: TERMINAL OUTBOX Section -->
+        <!-- Terminal Outbox -->
         <div id="outbox-section" class="hidden mb-10">
             <div class="flex items-center justify-between mb-4 px-2">
                 <h2 class="text-[11px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-500 flex items-center gap-2">
@@ -241,9 +241,68 @@
         let activeProperty = null;
         let billingConfig = { threshold: 15, minFee: 200, excessRate: 15 };
         let localPropertiesCache = null;
-        
-        // [Surgical]: Global state gatekeepers
         let isDeviceOffline = false;
+
+        // --- [Surgical]: Offline Outbox Tracker Logic ---
+
+        const getOutbox = () => JSON.parse(localStorage.getItem('aqt_outbox') || '[]');
+        const setOutbox = (data) => localStorage.setItem('aqt_outbox', JSON.stringify(data));
+
+        // Clean up: Checks if outbox items now exist physically on the server
+        const processSyncCleanup = async () => {
+            let outbox = getOutbox();
+            if (outbox.length === 0) return;
+
+            let changed = false;
+            for (let i = outbox.length - 1; i >= 0; i--) {
+                const item = outbox[i];
+                // Physically check the server for this specific reading ID
+                const snap = await db.ref(`readings/${item.id}`).once('value');
+                if (snap.exists()) {
+                    outbox.splice(i, 1);
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                setOutbox(outbox);
+                renderOutboxOnly();
+            }
+        };
+
+        const renderOutboxOnly = () => {
+            const outboxContainer = document.getElementById('outbox-feed');
+            const outboxSection = document.getElementById('outbox-section');
+            const outboxCountEl = document.getElementById('outbox-count');
+            
+            const outbox = getOutbox();
+            outboxContainer.innerHTML = '';
+
+            if (outbox.length > 0) {
+                outboxSection.classList.remove('hidden');
+                outboxCountEl.innerText = outbox.length;
+                outbox.reverse().forEach(r => outboxContainer.appendChild(createLogEntry(r, false)));
+            } else {
+                outboxSection.classList.add('hidden');
+            }
+        };
+
+        // --- [Standard]: Event Listeners & Functions ---
+
+        db.ref(".info/connected").on("value", (snap) => {
+            isDeviceOffline = (snap.val() === false);
+            const fab = document.getElementById('fab-container');
+            const statusText = document.getElementById('connection-status');
+
+            if (!isDeviceOffline) {
+                fab.classList.remove('is-offline');
+                if(statusText) statusText.innerText = "● Online";
+                processSyncCleanup();
+            } else {
+                fab.classList.add('is-offline');
+                if(statusText) statusText.innerText = "● Offline (Cached)";
+            }
+        });
 
         const primePropertyCache = () => {
             db.ref('properties').on('value', (snap) => {
@@ -253,29 +312,6 @@
                 }
             });
         };
-
-        db.ref(".info/connected").on("value", (snap) => {
-            isDeviceOffline = (snap.val() === false);
-            const fab = document.getElementById('fab-container');
-            const statusText = document.getElementById('connection-status');
-            const ping = document.getElementById('fab-ping');
-
-            if (!isDeviceOffline) {
-                fab.classList.remove('is-offline');
-                if(statusText) {
-                    statusText.innerText = "● Online";
-                    statusText.className = "text-[10px] text-emerald-500 font-bold uppercase tracking-[0.4em] mt-2 opacity-60";
-                }
-                if(ping) ping.className = "absolute inset-0 rounded-full bg-waterDark animate-ping opacity-20 pointer-events-none";
-            } else {
-                fab.classList.add('is-offline');
-                if(statusText) {
-                    statusText.innerText = "● Offline (Cached)";
-                    statusText.className = "text-[10px] text-amber-500 font-bold uppercase tracking-[0.4em] mt-2 opacity-60";
-                }
-                if(ping) ping.className = "absolute inset-0 rounded-full bg-amber-500 animate-ping opacity-20 pointer-events-none";
-            }
-        });
 
         const updateHUDStats = async () => {
             if(!localPropertiesCache) return;
@@ -291,7 +327,6 @@
             }
 
             const capturedCount = uniqueCaptured.size;
-            // [Surgical Fix]: Math.max(0) ensures we never show -1 units
             const remaining = Math.max(0, totalUnits - capturedCount);
             const pct = totalUnits > 0 ? Math.min(100, Math.round((capturedCount / totalUnits) * 100)) : 0;
 
@@ -303,60 +338,27 @@
 
         const renderFeeds = (snapshot) => {
             const activityContainer = document.getElementById('readings-feed');
-            const outboxContainer = document.getElementById('outbox-feed');
-            const outboxSection = document.getElementById('outbox-section');
-            const outboxCountEl = document.getElementById('outbox-count');
-            
             activityContainer.innerHTML = '';
-            outboxContainer.innerHTML = '';
             
+            const outbox = getOutbox();
+            const outboxIds = new Set(outbox.map(item => item.id));
+
             let syncedItems = [];
-            let outboxItems = [];
-        
-            console.group("%c[AQUATRACK] Telemetry Sync Scan", "color: #4facfe; font-weight: bold;");
-            
             snapshot.forEach(child => {
-                const data = child.val();
-                const key = child.key;
-        
-                // [Senior Engineer Debugger]: Let's see the raw truth
-                const tsType = typeof data.timestamp;
-                const tsValue = data.timestamp;
-                
-                /**
-                 * LOGIC REFINEMENT:
-                 * History should ONLY stay in Synced if the timestamp is a finalized Number.
-                 * New offline writes in RTDB appear as Objects (Estimates) or very large 
-                 * temporary integers depending on the internal cache state.
-                 */
-                const isPending = (tsType !== 'number');
-        
-                console.log(`Unit: ${data.locationAddress} | Key: ${key} | TS_Type: ${tsType} | Pending: ${isPending}`);
-        
-                if (isPending) {
-                    outboxItems.push(data);
-                } else {
-                    syncedItems.push(data);
+                // If it is currently in our manual outbox, don't show it here yet
+                if (!outboxIds.has(child.key)) {
+                    syncedItems.push(child.val());
                 }
             });
-        
-            console.groupEnd();
-        
-            // 1. TERMINAL OUTBOX (Strictly Unfinalized)
-            if (outboxItems.length > 0) {
-                outboxSection.classList.remove('hidden');
-                outboxCountEl.innerText = outboxItems.length;
-                outboxItems.reverse().forEach(r => outboxContainer.appendChild(createLogEntry(r, false)));
-            } else {
-                outboxSection.classList.add('hidden');
-            }
-        
-            // 2. ACTIVITY LOG (Strictly Server-Finalized Numbers)
+
             const latestSynced = syncedItems.reverse().slice(0, 5);
             if(latestSynced.length > 0 && latestSynced[0].locationAddress) {
                 document.getElementById('active-street').innerText = latestSynced[0].locationAddress.split(' ')[0] + ' St.';
             }
             latestSynced.forEach(r => activityContainer.appendChild(createLogEntry(r, true)));
+            
+            // Re-render outbox to ensure latest state
+            renderOutboxOnly();
         };
 
         const createLogEntry = (r, isSynced) => {
@@ -382,10 +384,41 @@
             return div;
         };
 
-        const calculateAmount = (curr, prev) => {
-            const consumption = Math.max(0, curr - prev);
-            if (consumption <= billingConfig.threshold) return billingConfig.minFee;
-            return billingConfig.minFee + ((consumption - billingConfig.threshold) * billingConfig.excessRate);
+        window.submitReading = () => {
+            const reading = parseFloat(document.getElementById('input-reading').value);
+            const btn = document.getElementById('final-submit-btn');
+            btn.innerText = "..."; btn.disabled = true;
+            
+            // 1. Manually generate ID first for tracking
+            const newRef = db.ref('readings').push();
+            const readingId = newRef.key;
+
+            const readingData = {
+                propertyId: activeProperty.id,
+                billingCycle: new Date().toISOString().slice(0, 7),
+                readerId: auth.currentUser.uid,
+                readerName: sessionStorage.getItem('aqt_user_name'),
+                reading: reading,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                locationAddress: `${activeProperty.street} B${activeProperty.block} L${activeProperty.lot}`,
+                status: 'pending'
+            };
+
+            // 2. Add to Local Tracker
+            let outbox = getOutbox();
+            outbox.push({ id: readingId, ...readingData });
+            setOutbox(outbox);
+
+            // 3. Write to Database (Persistent cache handles the heavy lifting)
+            newRef.set(readingData);
+            db.ref(`properties/${activeProperty.id}`).update({ lastReading: reading });
+            
+            toast("Telemetery Captued to Outbox", "warning");
+            closeReadingModal();
+            updateHUDStats();
+            renderOutboxOnly();
+            
+            setTimeout(() => { btn.innerText = "Yes, Upload"; btn.disabled = false; }, 1000);
         };
 
         window.identifyProperty = () => {
@@ -415,37 +448,11 @@
         };
 
         document.getElementById('input-reading').addEventListener('input', (e) => {
-            const amount = calculateAmount(parseFloat(e.target.value) || 0, activeProperty?.lastReading || 0);
+            const val = parseFloat(e.target.value) || 0;
+            const consumption = Math.max(0, val - (activeProperty?.lastReading || 0));
+            const amount = consumption <= billingConfig.threshold ? billingConfig.minFee : billingConfig.minFee + ((consumption - billingConfig.threshold) * billingConfig.excessRate);
             document.getElementById('display-cost').innerText = formatCurrency(amount);
         });
-
-        // [Surgical Fix]: Non-await transmission for instant modal closure
-        window.submitReading = () => {
-            const reading = parseFloat(document.getElementById('input-reading').value);
-            const btn = document.getElementById('final-submit-btn');
-            btn.innerText = "..."; btn.disabled = true;
-            
-            const readingData = {
-                propertyId: activeProperty.id,
-                billingCycle: new Date().toISOString().slice(0, 7),
-                readerId: auth.currentUser.uid,
-                readerName: sessionStorage.getItem('aqt_user_name'),
-                reading: reading,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                locationAddress: `${activeProperty.street} B${activeProperty.block} L${activeProperty.lot}`,
-                status: 'pending'
-            };
-            
-            // Fire and forget (Firebase manages local persistence)
-            db.ref('readings').push(readingData);
-            db.ref(`properties/${activeProperty.id}`).update({ lastReading: reading });
-            
-            toast("Captured to Terminal Outbox", "warning");
-            closeReadingModal();
-            updateHUDStats();
-            
-            setTimeout(() => { btn.innerText = "Yes, Upload"; btn.disabled = false; }, 1000);
-        };
 
         window.showConfirmation = () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
@@ -484,11 +491,9 @@
             if (userRole !== 'reader') window.location.replace('../index.html?error=unauthorized');
             
             const snap = await db.ref('config/billing').once('value');
-            if (snap.exists()) {
-                billingConfig = snap.val();
-                const el = document.getElementById('rate-summary-text');
-                if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³ + ₱${billingConfig.excessRate}/m³ excess`;
-            }
+            if (snap.exists()) billingConfig = snap.val();
+            const el = document.getElementById('rate-summary-text');
+            if(el) el.innerText = `₱${billingConfig.minFee} base up to ${billingConfig.threshold}m³ + ₱${billingConfig.excessRate}/m³ excess`;
             
             const streetSnap = await db.ref('config/streets').once('value');
             const select = document.getElementById('input-street');
