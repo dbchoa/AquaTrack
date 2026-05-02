@@ -45,7 +45,6 @@
             margin-bottom: 0.25rem;
             transition: opacity 0.3s ease;
         }
-        /* [Surgical]: Terminal Outbox Entry */
         .outbox-entry {
             border-left: 2px solid #f59e0b;
             background: rgba(245, 158, 11, 0.05);
@@ -63,7 +62,6 @@
             background: linear-gradient(to bottom, #4facfe 0%, #0072ff 50%, #003366 100%);
             transition: background 0.5s ease;
         }
-        /* [Surgical]: Offline Visual Logic */
         .is-offline .water-fill {
             background: linear-gradient(to bottom, #f59e0b 0%, #d97706 50%, #78350f 100%);
         }
@@ -117,7 +115,7 @@
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                     </span>
-                    Waiting for Sync
+                    Terminal Outbox
                 </h2>
                 <span id="outbox-count" class="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full">0</span>
             </div>
@@ -242,11 +240,8 @@
 
         let activeProperty = null;
         let billingConfig = { threshold: 15, minFee: 200, excessRate: 15 };
-        
-        // [Surgical]: Local Flash Cache for Offline Identification
         let localPropertiesCache = null;
 
-        // [Surgical]: Pre-load cache from Disk/Cloud immediately
         const primePropertyCache = () => {
             db.ref('properties').on('value', (snap) => {
                 if(snap.exists()) {
@@ -256,7 +251,6 @@
             });
         };
 
-        // [Surgical]: Connection Monitor & FAB Visual Logic
         db.ref(".info/connected").on("value", (snap) => {
             const isOnline = snap.val() === true;
             const fab = document.getElementById('fab-container');
@@ -285,12 +279,10 @@
                 const snap = await db.ref('config/streets').once('value');
                 const select = document.getElementById('input-street');
                 if (snap.exists() && select) {
-                    const streets = snap.val();
                     select.innerHTML = '<option value="" disabled selected>Select Street...</option>';
-                    Object.values(streets).forEach(st => {
+                    Object.values(snap.val()).forEach(st => {
                         const opt = document.createElement('option');
-                        opt.value = st.name;
-                        opt.textContent = st.fullName;
+                        opt.value = st.name; opt.textContent = st.fullName;
                         select.appendChild(opt);
                     });
                 }
@@ -327,7 +319,7 @@
             document.getElementById('progress-bar').style.width = `${pct}%`;
         };
 
-        // [Surgical]: Split Feed Logic (Synced vs Waiting)
+        // [Surgical]: Fixed false labeling and feed split
         const renderFeeds = (snapshot) => {
             const activityContainer = document.getElementById('readings-feed');
             const outboxContainer = document.getElementById('outbox-feed');
@@ -342,7 +334,10 @@
 
             snapshot.forEach(child => {
                 const data = child.val();
+                // [Surgical Check]: Realtime check if data is cloud-confirmed
+                // Using child.getMetadata() logic for Compat
                 const isLocal = child.metadata ? child.metadata.fromCache : false;
+                
                 isLocal ? outboxItems.push(data) : syncedItems.push(data);
             });
 
@@ -385,7 +380,6 @@
             return billingConfig.minFee + ((consumption - billingConfig.threshold) * billingConfig.excessRate);
         };
 
-        // [Surgical]: Identification logic using local cache
         window.identifyProperty = () => {
             const street = document.getElementById('input-street').value;
             const block = document.getElementById('input-block').value;
@@ -417,6 +411,7 @@
             document.getElementById('display-cost').innerText = formatCurrency(amount);
         });
 
+        // [Surgical Fix]: Removed 'await' from transmission to prevent offline hang
         window.submitReading = async () => {
             const reading = parseFloat(document.getElementById('input-reading').value);
             const btn = document.getElementById('final-submit-btn');
@@ -432,11 +427,15 @@
                     locationAddress: `${activeProperty.street} B${activeProperty.block} L${activeProperty.lot}`,
                     status: 'pending'
                 };
-                await db.ref('readings').push(readingData);
-                await db.ref(`properties/${activeProperty.id}`).update({ lastReading: reading });
-                toast("Telemetry logged", "success");
+                
+                // Set data instantly to local Firebase cache (survives offline)
+                db.ref('readings').push(readingData);
+                db.ref(`properties/${activeProperty.id}`).update({ lastReading: reading });
+                
+                toast("Logged to Terminal Outbox", "warning");
                 closeReadingModal();
-            } catch (e) { toast("Local save active", "warning"); closeReadingModal(); }
+                updateHUDStats();
+            } catch (e) { toast("Local save failed", "error"); closeReadingModal(); }
             finally { btn.innerText = "Yes, Upload"; btn.disabled = false; }
         };
 
