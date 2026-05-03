@@ -93,7 +93,7 @@
             <p class="text-[11px] font-bold text-waterDark dark:text-water uppercase tracking-widest mt-1">Hello, <span id="reader-name-display">...</span></p>
         </div>
         
-        <div class="glass-card p-8 rounded-32 border-b-4 border-water mb-8 bg-white/90 dark:bg-slate-900/50 shadow-2xl relative overflow-hidden">
+        <div class="glass-card p-8 rounded-32 border-b-4 border-water mb-4 bg-white/90 dark:bg-slate-900/50 shadow-2xl relative overflow-hidden">
             <div class="flex justify-between items-end relative z-10">
                 <div>
                     <p class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-1">Cycle Completion</p>
@@ -108,13 +108,13 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="glass-card p-6 rounded-xl shadow-sm border-water/40 dark:border-water/40">
-                <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Current Street</p>
+        <div class="glass-card p-6 rounded-2xl mb-4 border-water/20 bg-white/50 dark:bg-slate-900/30 flex justify-between items-center shadow-sm">
+            <div class="flex flex-col">
+                <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Current Focus</p>
                 <h4 id="active-street" class="text-xl font-bold text-slate-900 dark:text-white truncate">---</h4>
             </div>
-            <div class="glass-card p-6 rounded-xl shadow-sm border-water/40 dark:border-water/40">
-                <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Remaining</p>
+            <div class="text-right">
+                <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1">Street Remaining</p>
                 <h4 id="remaining-units" class="text-xl font-bold text-waterDark dark:text-water">-- Units</h4>
             </div>
         </div>
@@ -284,25 +284,19 @@
 
         db.ref(".info/connected").on("value", (snap) => {
             isDeviceOffline = (snap.val() === false);
-            const fab = document.getElementById('fab-container');
             const statusText = document.getElementById('connection-status');
-            const ping = document.getElementById('fab-ping');
 
             if (!isDeviceOffline) {
-                if(fab) fab.classList.remove('is-offline');
                 if(statusText) {
                     statusText.innerText = "● Online";
                     statusText.className = "text-[10px] text-emerald-500 font-bold uppercase tracking-[0.4em] mb-2 opacity-60";
                 }
-                if(ping) ping.className = "absolute inset-0 rounded-full bg-waterDark animate-ping opacity-20 pointer-events-none";
                 processSyncCleanup();
             } else {
-                if(fab) fab.classList.add('is-offline');
                 if(statusText) {
                     statusText.innerText = "● Offline (Cached)";
                     statusText.className = "text-[10px] text-warning font-bold uppercase tracking-[0.4em] mb-2 opacity-60";
                 }
-                if(ping) ping.className = "absolute inset-0 rounded-full bg-warning animate-ping opacity-20 pointer-events-none";
             }
         });
 
@@ -325,29 +319,41 @@
         const updateHUDStats = async () => {
             if(!localPropertiesCache) return;
             const rSnap = await db.ref('readings').once('value');
-            const totalUnits = Object.keys(localPropertiesCache).length;
-            const uniqueCaptured = new Set();
             const currentCycle = new Date().toISOString().slice(0, 7);
+            
+            // Scoped Calculation Logic
+            const activeStreetName = document.getElementById('active-street').innerText.replace(' St.', '').trim();
+            const totalSubdivisionUnits = Object.keys(localPropertiesCache).length;
+            const uniqueCapturedIds = new Set();
 
             if (rSnap.exists()) {
                 Object.values(rSnap.val()).forEach(r => {
-                    if (r.billingCycle === currentCycle && r.propertyId) uniqueCaptured.add(r.propertyId);
+                    if (r.billingCycle === currentCycle && r.propertyId) uniqueCapturedIds.add(r.propertyId);
                 });
             }
 
             getOutbox().forEach(item => {
-                if (item.billingCycle === currentCycle && item.propertyId) uniqueCaptured.add(item.propertyId);
+                if (item.billingCycle === currentCycle && item.propertyId) uniqueCapturedIds.add(item.propertyId);
             });
 
-            const capturedCount = uniqueCaptured.size;
-            const remaining = Math.max(0, totalUnits - capturedCount);
-            const pct = totalUnits > 0 ? Math.min(100, Math.round((capturedCount / totalUnits) * 100)) : 0;
-
-            document.getElementById('display-progress-pct').innerHTML = `${pct}<span class="text-lg opacity-50 ml-1">%</span>`;
-            document.getElementById('display-counts').innerText = `${capturedCount} / ${totalUnits} Units`;
-            document.getElementById('remaining-units').innerText = `${remaining} Units`;
+            // Update Global Progress
+            const subdivisionCapturedCount = uniqueCapturedIds.size;
+            const globalPct = totalSubdivisionUnits > 0 ? Math.min(100, Math.round((subdivisionCapturedCount / totalSubdivisionUnits) * 100)) : 0;
+            document.getElementById('display-progress-pct').innerHTML = `${globalPct}<span class="text-lg opacity-50 ml-1">%</span>`;
+            document.getElementById('display-counts').innerText = `${subdivisionCapturedCount} / ${totalSubdivisionUnits} Total Units`;
             const bar = document.getElementById('progress-bar');
-            if(bar) bar.style.width = `${pct}%`;
+            if(bar) bar.style.width = `${globalPct}%`;
+
+            // Update Scoped Street Remaining
+            if(activeStreetName && activeStreetName !== "---") {
+                const streetProperties = Object.keys(localPropertiesCache).filter(id => localPropertiesCache[id].street === activeStreetName);
+                const streetTotal = streetProperties.length;
+                const streetCapturedCount = streetProperties.filter(id => uniqueCapturedIds.has(id)).length;
+                const streetRemaining = Math.max(0, streetTotal - streetCapturedCount);
+                document.getElementById('remaining-units').innerText = `${streetRemaining} Units`;
+            } else {
+                document.getElementById('remaining-units').innerText = `${totalSubdivisionUnits - globalCapturedCount} Units`;
+            }
         };
 
         const renderFeeds = (snapshot) => {
@@ -371,6 +377,7 @@
             }
 
             latestItems.forEach(item => { activityContainer.appendChild(createLogEntry(item, item.isSynced)); });
+            updateHUDStats(); // Trigger re-calculation for the specific street
             renderOutboxOnly();
         };
 
@@ -439,11 +446,9 @@
             });
 
             db.ref(`properties/${activeProperty.propertyId}`).update({ lastReading: reading });
-            
             toast(`Captured (${isDeviceOffline ? 'Offline' : 'Online'})`, isDeviceOffline ? "warning" : "success");
             closeReadingModal();
             updateHUDStats();
-            
             setTimeout(() => { btn.innerText = "Yes, Upload"; btn.disabled = false; }, 1000);
         };
 
@@ -453,8 +458,6 @@
             const lotInput = document.getElementById('input-lot').value.trim().toLowerCase();
 
             if(!street || !block || !lotInput) return toast("Missing details", "info");
-            if(!localPropertiesCache) return toast("Waking cache...", "warning");
-
             activeProperty = null;
             for(let id in localPropertiesCache) {
                 const p = localPropertiesCache[id];
@@ -515,17 +518,14 @@
         };
 
         db.ref('readings').limitToLast(5).on('value', (snap) => {
-            updateHUDStats();
             if(snap.exists()) renderFeeds(snap);
+            else updateHUDStats();
         });
 
         auth.onAuthStateChanged(async (user) => { 
             if (!user) return window.location.replace('../index.html');
-            
-            // POPULATE READER NAME FROM SESSION
             const readerName = sessionStorage.getItem('aqt_user_name') || "Staff";
             document.getElementById('reader-name-display').innerText = readerName;
-
             primePropertyCache();
             processSyncCleanup();
             const snap = await db.ref('config/billing').once('value');
