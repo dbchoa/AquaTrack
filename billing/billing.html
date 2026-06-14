@@ -241,6 +241,11 @@ main { height: 100vh; display: flex; flex-direction: column; }
                 <i class="bi bi-bar-chart-fill text-sm"></i>
                 <span class="hidden lg:inline">Collection Report</span>
             </button>
+            <button onclick="generateMassSOA()" title="Mass SOA"
+                class="flex items-center gap-2 h-9 px-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-purple-600 dark:text-purple-400 font-black uppercase text-[9px] tracking-widest active:scale-95 transition-all flex-shrink-0 hover:bg-purple-50 dark:hover:bg-purple-900/20">
+                <i class="bi bi-file-earmark-zip-fill text-sm"></i>
+                <span class="hidden lg:inline">Mass SOA</span>
+            </button>
         </div>
 
         <!-- Row 2 -->
@@ -361,6 +366,8 @@ main { height: 100vh; display: flex; flex-direction: column; }
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
@@ -1221,6 +1228,215 @@ ${pending.length > 0 ? `
     if (!win) { toast('Pop-up blocked — allow pop-ups for this page', 'error'); return; }
     win.document.write(html);
     win.document.close();
+};
+
+// ─── MASS SOA GENERATOR ──────────────────────────────────────────────────────
+
+window.generateMassSOA = async () => {
+    const cycle = document.getElementById('filter-cycle').value;
+    if (!cycle) { toast('Select a billing cycle first', 'info'); return; }
+
+    const scoped = allReadings.filter(r => r.billingCycle === cycle);
+    if (scoped.length === 0) { toast('No records for cycle ' + cycle, 'info'); return; }
+
+    toast(`Generating ${scoped.length} SOAs — please wait...`, 'info');
+
+    const { jsPDF } = window.jspdf;
+    const zip = new JSZip();
+
+    const orgName    = orgConfig.name    || 'AquaTrack';
+    const orgSubname = orgConfig.subname || '';
+
+    for (const r of scoped) {
+        const unit   = unitsMap[r.unitId] || {};
+        const owner  = unit.ownerName || 'Resident';
+        const amount = calculateAmount(r);
+        const isPaid = r.status === 'paid';
+
+        const { threshold, minFee, excessRate } = r.appliedRates || { threshold: 15, minFee: 200, excessRate: 15 };
+        const consumption  = Math.max(0, r.reading - r.prevReading);
+        const excessUnits  = Math.max(0, consumption - threshold);
+        const excessCharge = excessUnits * excessRate;
+
+        const [yr, mo]    = r.billingCycle.split('-').map(Number);
+        const dueDate     = new Date(yr, mo + 1, 0);
+        const dueDateStr  = dueDate.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+        const readingDate = r.timestamp
+            ? new Date(r.timestamp).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' })
+            : '—';
+        const paidDateStr = r.paidDate
+            ? new Date(r.paidDate).toLocaleString([], { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : null;
+
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+        const W = 210; // A4 width mm
+        const margin = 20;
+        let y = 0;
+
+        // ── Header gradient bar ───────────────────────────────────────────────
+        doc.setFillColor(0, 114, 255);
+        doc.rect(0, 0, W, 32, 'F');
+
+        // Org name
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text(orgName, margin, 13);
+        if (orgSubname) {
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(orgSubname.toUpperCase(), margin, 19);
+        }
+
+        // Doc label (right)
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('STATEMENT OF ACCOUNT', W - margin, 11, { align: 'right' });
+        doc.setFontSize(14);
+        doc.text(r.billingCycle, W - margin, 20, { align: 'right' });
+
+        y = 42;
+
+        // ── Status block ─────────────────────────────────────────────────────
+        if (isPaid) {
+            doc.setFillColor(240, 253, 244);
+            doc.setDrawColor(187, 247, 208);
+        } else {
+            doc.setFillColor(255, 251, 235);
+            doc.setDrawColor(253, 230, 138);
+        }
+        doc.setLineWidth(0.3);
+        doc.roundedRect(margin, y, W - margin*2, 12, 2, 2, 'FD');
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(isPaid ? 22 : 180, isPaid ? 163 : 120, isPaid ? 74 : 9);
+        doc.text(isPaid ? 'PAID' : 'PAYMENT DUE', margin + 4, y + 5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        doc.text(
+            isPaid ? `Received: ${paidDateStr}` : `Please pay on or before ${dueDateStr}`,
+            margin + 22, y + 5
+        );
+
+        y += 18;
+
+        // ── Gap fill note ─────────────────────────────────────────────────────
+        if (r.isGapFill) {
+            doc.setFillColor(255, 251, 235);
+            doc.setDrawColor(253, 230, 138);
+            doc.roundedRect(margin, y, W - margin*2, 10, 2, 2, 'FD');
+            doc.setFontSize(7.5);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(146, 64, 14);
+            doc.text('⚠ Gap Fill — No field reading captured. Minimum fee applies.', margin + 4, y + 6);
+            y += 16;
+        }
+
+        // ── Helper: section title ─────────────────────────────────────────────
+        const sectionTitle = (title) => {
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(148, 163, 184);
+            doc.text(title.toUpperCase(), margin, y);
+            doc.setDrawColor(241, 245, 249);
+            doc.setLineWidth(0.3);
+            doc.line(margin, y + 1.5, W - margin, y + 1.5);
+            y += 6;
+        };
+
+        // ── Helper: row ───────────────────────────────────────────────────────
+        const row = (label, value) => {
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 116, 139);
+            doc.text(label, margin, y);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(30, 41, 59);
+            doc.text(String(value), W - margin, y, { align: 'right' });
+            y += 6;
+        };
+
+        // ── Account Information ───────────────────────────────────────────────
+        sectionTitle('Account Information');
+        row('Homeowner',       owner);
+        row('Address',         r.locationAddress);
+        row('Unit',            unit.unitLabel || 'Main House');
+        row('Meter Serial No.', r.meterSerial || unit.meterSerial || '—');
+        y += 4;
+
+        // ── Billing Period ────────────────────────────────────────────────────
+        sectionTitle('Billing Period');
+        row('Billing Cycle', r.billingCycle);
+        row('Reading Date',  readingDate);
+        row('Read By',       r.readerName || '—');
+        y += 4;
+
+        // ── Consumption Details ───────────────────────────────────────────────
+        sectionTitle('Consumption Details');
+        row('Previous Reading', r.prevReading.toFixed(1) + ' m³');
+        row('Present Reading',  r.reading.toFixed(1) + ' m³');
+
+        // Consumption row highlighted
+        doc.setFillColor(239, 246, 255);
+        doc.rect(margin, y - 3, W - margin*2, 7, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 114, 255);
+        doc.text('Consumption', margin, y + 1);
+        doc.text(consumption.toFixed(1) + ' m³', W - margin, y + 1, { align: 'right' });
+        y += 10;
+
+        // ── Bill Computation ──────────────────────────────────────────────────
+        sectionTitle('Bill Computation');
+        row(`Minimum Fee (≤${threshold} m³)`, `₱${minFee.toFixed(2)}`);
+        row(`Excess (${excessUnits.toFixed(1)} m³ × ₱${excessRate})`, `₱${excessCharge.toFixed(2)}`);
+        y += 2;
+
+        // Total Due
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.5);
+        doc.line(margin, y, W - margin, y);
+        y += 6;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(71, 85, 105);
+        doc.text('TOTAL DUE', margin, y);
+        doc.setFontSize(18);
+        doc.setTextColor(0, 114, 255);
+        doc.text(`₱${amount.toFixed(2)}`, W - margin, y + 1, { align: 'right' });
+        y += 14;
+
+        // ── Footer ────────────────────────────────────────────────────────────
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.3);
+        doc.line(margin, 277, W - margin, 277);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184);
+        doc.text('This is a system-generated document · AquaTrack v2.2', margin, 281);
+        doc.text(
+            'Generated: ' + new Date().toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            W - margin, 281, { align: 'right' }
+        );
+
+        // ── Filename: Street_Block_Lot_Unit_BillingCycle.pdf ──────────────────
+        // Derive from unitId: {Street}_{Block}_{Lot}_{Unit} + billingCycle
+        const filename = r.unitId + '_' + r.billingCycle + '.pdf';
+        zip.file(filename, doc.output('blob'));
+    }
+
+    // ── Generate and download ZIP ─────────────────────────────────────────────
+    toast('Packaging ZIP...', 'info');
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url  = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href     = url;
+    link.download = `AquaTrack_SOA_${cycle}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast(`${scoped.length} SOAs packaged and downloaded`, 'success');
 };
 
 // ─── PAYMENT PROCESSING ───────────────────────────────────────────────────────
