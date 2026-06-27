@@ -935,6 +935,7 @@ const buildSidebarHTML = (r) => {
                 <h2 class="text-xl font-black uppercase tracking-tight leading-tight">${owner}</h2>
                 <p class="text-xs font-bold text-slate-500 uppercase tracking-tight mt-2">${r.locationAddress}</p>
                 <p class="text-[10px] font-black text-waterDark uppercase tracking-[0.2em] mt-1">${unit.unitLabel || 'Standard Unit'} / Cycle ${r.billingCycle}</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Meter SN: <span class="text-waterDark dark:text-water font-black">${r.meterSerial || unit.meterSerial || '-'}</span></p>
             </div>
             ${gapNotice}
             <div class="space-y-4 mb-8">
